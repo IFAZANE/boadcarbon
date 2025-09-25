@@ -11,12 +11,8 @@ app = Flask(__name__)
 app.secret_key = 'supersecretkey'  # pour gérer les sessions
 
 # Config PostgreSQL
-DB_HOST = "localhost"
-DB_NAME = "BOAD_Carbone"
-DB_USER = "postgres"
-DB_PASS = "baba"
 
-app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://{DB_USER}:{DB_PASS}@{DB_HOST}/{DB_NAME}'
+app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://boad_carbone_j1ql_user:E80KplMeuCFD30xHNGswd6FF9sVMoRfz@ dpg-d3ai987diees73da22jg-a.oregon-postgres.render.com:5432/boad_carbone_j1ql'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
@@ -566,3 +562,4 @@ if __name__ == '__main__':
     with app.app_context():
         db.create_all()  # Créera la table 'statistiques' si elle n'existe pas
     app.run(debug=True)
+
