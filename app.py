@@ -3,16 +3,24 @@ import psycopg2
 import psycopg2.extras
 import json
 from flask_sqlalchemy import SQLAlchemy
+import os
 import random
-
-
+import re
+from datetime import datetime
 
 app = Flask(__name__)
 app.secret_key = 'supersecretkey'  # pour gérer les sessions
 
-# Config PostgreSQL
+# ==============================
+# 🔗 Configuration PostgreSQL
+# ==============================
 
-app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://boad_carbone_j1ql_user:E80KplMeuCFD30xHNGswd6FF9sVMoRfz@ dpg-d3ai987diees73da22jg-a.oregon-postgres.render.com:5432/boad_carbone_j1ql'
+# Récupère l'URL de la base depuis les variables d'environnement (Render fournit DATABASE_URL)
+DATABASE_URL = os.environ.get("DATABASE_URL", 
+    "postgresql://boad_carbone_j1ql_user:E80KplMeuCFD30xHNGswd6FF9sVMoRfz@dpg-d3ai987diees73da22jg-a.oregon-postgres.render.com:5432/boad_carbone_j1ql"
+)
+
+app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
@@ -28,14 +36,12 @@ class Statistique(db.Model):
 ADMIN_USERNAME = "admin"
 ADMIN_PASSWORD = "password"
 
-
-# 🔁 Connexion DB psycopg2
+# ==============================
+# Connexion DB avec psycopg2
+# ==============================
 def get_db_connection():
-    return psycopg2.connect(
-        host=DB_HOST, dbname=DB_NAME, user=DB_USER, password=DB_PASS
-    )
-
-
+    conn = psycopg2.connect(DATABASE_URL, sslmode="require")
+    return conn
 
 def table_exists(cur, table_name):
     cur.execute("""
@@ -562,4 +568,5 @@ if __name__ == '__main__':
     with app.app_context():
         db.create_all()  # Créera la table 'statistiques' si elle n'existe pas
     app.run(debug=True)
+
 
