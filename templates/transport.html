@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Interface Transport - Émissions CO₂</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+  <style>
+    :root {
+      --boad-red: #a71930;
+      --boad-red-dark: #891625;
+      --white: #fff;
+      --boad-yellow: #FFCC00;
+      --boad-yellow-dark: #e6b800;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #fafafa;
+    }
+
+<!--    body::before {-->
+<!--  content: "";-->
+<!--  position: fixed;-->
+<!--  top: 0;-->
+<!--  left: 0;-->
+<!--  height: 100%;-->
+<!--  width: 100%;-->
+<!--  background-image: url('{{ url_for('static', filename='logo-boad.webp') }}');-->
+<!--  background-size: cover;-->
+<!--  background-repeat: no-repeat;-->
+<!--  background-position: center;-->
+<!--  opacity: 0.1;-->
+<!--  z-index: -1;-->
+<!--}-->
+
+
+    /* ==== BARRE DE MENU HORIZONTALE ==== */
+    header {
+  background-color: var(--boad-red);
+  height: 80px;
+  padding: 0 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  overflow: hidden;
+}
+
+    .header-left {
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+
+.header-left img {
+  height: 120px;
+  width: auto;
+  display: block;
+  object-fit: contain;
+}
+
+    .header-center {
+      flex-grow: 1;
+      min-width: 250px;
+      text-align: center;
+    }
+    .header-center h1 {
+      margin: 0;
+      font-weight: 700;
+      font-size: 1.75rem;
+      color: #fff;
+      user-select: none;
+    }
+    nav.header-nav {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    nav.header-nav a {
+      color: #fff;
+      text-decoration: none;
+      font-weight: 600;
+      padding: 0.6rem 1.2rem;
+      border-radius: 8px;
+      transition: background-color 0.3s ease, color 0.3s ease;
+      white-space: nowrap;
+      font-size: 1rem;
+    }
+    nav.header-nav a:hover,
+    nav.header-nav a:focus {
+      background-color: rgba(255, 255, 255, 0.3);
+      outline: none;
+      color: #ffebc2;
+    }
+
+    /* ==== CONTENU ==== */
+    .main-content {
+      max-width: 1100px;
+      margin: 2rem auto;
+      padding: 20px;
+      background: white;
+      box-shadow: 0 0 10px rgb(0 0 0 / 0.1);
+      border-radius: 8px;
+    }
+
+    .add-buttons {
+      margin: 10px 0 20px;
+      display: flex;
+      gap: 15px;
+    }
+    .add-buttons button {
+      background-color: var(--boad-yellow);
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      color: #333;
+      transition: background-color 0.3s ease;
+      flex-grow: 1;
+    }
+    .add-buttons button:hover {
+      background-color: var(--boad-yellow-dark);
+      color: #111;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    th, td {
+      padding: 12px 15px;
+      border: 1px solid #ddd;
+      text-align: left;
+      font-size: 14px;
+    }
+    th {
+      background-color: var(--boad-red);
+      color: white;
+      user-select: none;
+    }
+
+    tr.section-title td {
+      background-color: #f4f4f4;
+      font-weight: 700;
+      font-size: 16px;
+      color: var(--boad-red-dark);
+      user-select: none;
+    }
+    tr.subtotal-row td {
+      background-color: #fff8dc;
+      font-weight: 600;
+      font-size: 15px;
+      color: var(--boad-red-dark);
+      user-select: none;
+    }
+    tr.total-row td {
+      background-color: var(--boad-red);
+      color: var(--white);
+      font-weight: bolder;
+      font-size: 16px;
+      user-select: none;
+    }
+
+    select, input[type="number"] {
+      width: 100%;
+      padding: 6px 8px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+      transition: border-color 0.3s ease;
+    }
+    select:focus, input[type="number"]:focus {
+      border-color: var(--boad-red);
+      outline: none;
+      box-shadow: 0 0 5px var(--boad-red);
+    }
+
+    .action-btn {
+      background: none;
+      border: none;
+      color: var(--boad-red);
+      font-size: 18px;
+      cursor: pointer;
+      user-select: none;
+      transition: color 0.3s ease;
+    }
+    .action-btn:hover {
+      color: var(--boad-red-dark);
+    }
+
+    #enginDescription {
+      margin-top: 20px;
+      background: #fff3cc;
+      padding: 15px;
+      border-left: 6px solid var(--boad-yellow);
+      border-radius: 4px;
+      color: #5c3a00;
+      font-style: italic;
+      min-height: 50px;
+    }
+
+    /* Bouton quitter */
+    .quit-btn {
+      background-color: var(--boad-red-dark);
+      color: white;
+      padding: 0.6rem 1.2rem;
+      border: none;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    .quit-btn:hover {
+      background-color: #70121d;
+    }
+
+
+       body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('{{ url_for("static", filename="logo-boad.webp") }}');
+    background-repeat: repeat;
+    background-size: 80px auto;
+    opacity: 0.08; /* très léger fond */
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  </style>
+</head>
+
+<body id="transportTableBody">
+
+  <!-- HEADER horizontal comme la page Contact -->
+  <header>
+   <div class="header-left">
+    <img src="{{ url_for('static', filename='BOADCarbone.png') }}" alt="Logo BOAD" />
+  </div>
+    <div class="header-center">
+      <h1>Transport – Émissions CO₂</h1>
+    </div>
+    <nav class="header-nav">
+      <a href="{{ url_for('index') }}">Accueil</a>
+      <a href="{{ url_for('apropos') }}">À propos</a>
+      <a href="{{ url_for('contact') }}">Contacts</a>
+      <a href="{{ url_for('aide') }}">Aide</a>
+    </nav>
+  </header>
+
+  <main class="main-content">
+    <h2>Transport</h2>
+    <div class="add-buttons">
+      <button type="button" onclick="addTransportRow('scope_1')">➕ Ajouter Scope 1</button>
+      <button type="button" onclick="addTransportRow('scope_2')">➕ Ajouter Scope 2</button>
+      <button type="button" onclick="addTransportRow('scope_3')">➕ Ajouter Scope 3</button>
+    </div>
+
+    <table id="transportTable">
+      <thead>
+        <tr>
+          <th>Type de Transport</th>
+          <th>Type d'engin</th>
+          <th>Caractéristiques</th>
+          <th>Nombre</th>
+          <th>Distance (km)</th>
+          <th>Émissions (kgCO₂e)</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="transportBody"></tbody>
+    </table>
+
+    <div id="enginDescription"></div>
+
+    <div style="text-align: right; margin-top: 20px;">
+      <button style="background-color: var(--boad-yellow); padding: 12px 24px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;" onclick="suivant()">Étape suivante (1/3)→</button>
+    </div>
+  </main>
+
+
+
+<script>
+let enginsData = {{ engins_json | safe }};
+let transportRows = [];
+const scopes = Object.keys(enginsData);
+
+function afficherDescription(description) {
+  const divDesc = document.getElementById('enginDescription');
+  divDesc.textContent = description || '';
+}
+
+function renderTable() {
+  const tbody = document.getElementById('transportBody');
+  tbody.innerHTML = '';
+
+  scopes.forEach(scope => {
+    const trTitle = document.createElement('tr');
+    trTitle.className = 'section-title';
+    const tdTitle = document.createElement('td');
+    tdTitle.colSpan = 7;
+    tdTitle.textContent = scope.charAt(0).toUpperCase() + scope.slice(1).replace('_', ' ');
+    trTitle.appendChild(tdTitle);
+    tbody.appendChild(trTitle);
+
+    const rowsFiltered = transportRows.filter(r => r.scope === scope);
+    rowsFiltered.forEach(row => {
+      const tr = document.createElement('tr');
+
+      // Type de transport
+      const tdType = document.createElement('td');
+      const selectTypeTransport = document.createElement('select');
+      selectTypeTransport.innerHTML = `
+        <option value="personne" ${row.typeTransport === 'personne' ? 'selected' : ''}>Personnes</option>
+        <option value="marchandise" ${row.typeTransport === 'marchandise' ? 'selected' : ''}>Marchandises</option>
+      `;
+      selectTypeTransport.onchange = e => {
+        row.typeTransport = e.target.value;
+        row.categorie = '';
+        row.engin = '';
+        row.facteur = 0;
+        afficherDescription('');
+        saveAndRender();
+      };
+      tdType.appendChild(selectTypeTransport);
+      tr.appendChild(tdType);
+
+      // Catégorie d'engin
+      const tdEnginType = document.createElement('td');
+      const selectEnginType = document.createElement('select');
+      selectEnginType.innerHTML = `<option value="">-- Choisir une catégorie --</option>`;
+      if (enginsData[scope] && enginsData[scope][row.typeTransport]) {
+        Object.keys(enginsData[scope][row.typeTransport]).forEach(cat => {
+          const opt = document.createElement('option');
+          opt.value = cat;
+          opt.textContent = cat;
+          if (cat === row.categorie) opt.selected = true;
+          selectEnginType.appendChild(opt);
+        });
+      }
+      selectEnginType.onchange = e => {
+        row.categorie = e.target.value;
+        row.engin = '';
+        row.facteur = 0;
+        row.type_engin_id = null;
+        afficherDescription('');
+        saveAndRender();
+      };
+      tdEnginType.appendChild(selectEnginType);
+      tr.appendChild(tdEnginType);
+
+      // Choix de l'engin
+      const tdEngin = document.createElement('td');
+      const selectEngin = document.createElement('select');
+      selectEngin.innerHTML = `<option value="">-- Choisir un engin --</option>`;
+      if (
+        row.categorie &&
+        enginsData[scope] &&
+        enginsData[scope][row.typeTransport] &&
+        enginsData[scope][row.typeTransport][row.categorie]
+      ) {
+        enginsData[scope][row.typeTransport][row.categorie].forEach(enginObj => {
+          const opt = document.createElement('option');
+          opt.value = enginObj.nom;
+          opt.textContent = enginObj.nom;
+          if (enginObj.nom === row.engin) opt.selected = true;
+          selectEngin.appendChild(opt);
+        });
+      }
+      selectEngin.onchange = e => {
+        const selectedNom = e.target.value;
+        row.engin = selectedNom;
+        if (
+          row.categorie &&
+          enginsData[scope] &&
+          enginsData[scope][row.typeTransport] &&
+          enginsData[scope][row.typeTransport][row.categorie]
+        ) {
+          const eng = enginsData[scope][row.typeTransport][row.categorie].find(en => en.nom === selectedNom);
+          row.facteur = eng ? eng.facteur : 0;
+          row.description = eng ? eng.description : '';
+          row.type_engin_id = eng ? eng.id : null;
+          afficherDescription(row.description);
+        }
+        saveAndRender();
+      };
+      tdEngin.appendChild(selectEngin);
+      tr.appendChild(tdEngin);
+
+      // Nombre
+      const tdNombre = document.createElement('td');
+      const inputNombre = document.createElement('input');
+      inputNombre.type = 'number';
+      inputNombre.min = '1';
+      inputNombre.value = row.nombre || 1;
+      inputNombre.style.width = '70px';
+      inputNombre.oninput = e => {
+        const val = parseInt(e.target.value);
+        row.nombre = val > 0 ? val : 1;
+        sessionStorage.setItem('transportRows', JSON.stringify(transportRows));
+      };
+      inputNombre.onblur = () => saveAndRender();
+      tdNombre.appendChild(inputNombre);
+      tr.appendChild(tdNombre);
+
+      // Distance
+      const tdDistance = document.createElement('td');
+      const inputDistance = document.createElement('input');
+      inputDistance.type = 'number';
+      inputDistance.min = '0';
+      inputDistance.step = '0.1';
+      inputDistance.value = row.distance || 0;
+      inputDistance.style.width = '100px';
+      inputDistance.oninput = e => {
+        const val = parseFloat(e.target.value);
+        row.distance = val >= 0 ? val : 0;
+        sessionStorage.setItem('transportRows', JSON.stringify(transportRows));
+      };
+      inputDistance.onblur = () => saveAndRender();
+      tdDistance.appendChild(inputDistance);
+      tr.appendChild(tdDistance);
+
+      // Émissions
+      const tdEmissions = document.createElement('td');
+      const emissions = (row.facteur || 0) * (row.distance || 0) * (row.nombre || 1);
+      tdEmissions.textContent = emissions.toFixed(2);
+      tr.appendChild(tdEmissions);
+
+      // Action (supprimer)
+      const tdAction = document.createElement('td');
+      const btnDelete = document.createElement('button');
+      btnDelete.className = 'action-btn';
+      btnDelete.title = 'Supprimer cette ligne';
+      btnDelete.textContent = '🗑️';
+      btnDelete.onclick = () => {
+        transportRows.splice(transportRows.indexOf(row), 1);
+        afficherDescription('');
+        saveAndRender();
+      };
+      tdAction.appendChild(btnDelete);
+      tr.appendChild(tdAction);
+
+      tbody.appendChild(tr);
+    });
+
+    // Sous-total
+    const sousTotal = rowsFiltered.reduce((acc, r) => acc + ((r.facteur || 0) * (r.distance || 0) * (r.nombre || 1)), 0);
+    const trSubtotal = document.createElement('tr');
+    trSubtotal.className = 'subtotal-row ' + scope.replace(' ', '-');
+    trSubtotal.innerHTML = `<td colspan="5">Sous-total ${scope.charAt(0).toUpperCase() + scope.slice(1).replace('_', ' ')}</td><td colspan="2"><span>${sousTotal.toFixed(2)}</span> kgCO₂e</td>`;
+    tbody.appendChild(trSubtotal);
+  });
+
+  // Total global
+  const total = transportRows.reduce((acc, r) => acc + ((r.facteur || 0) * (r.distance || 0) * (r.nombre || 1)), 0);
+  const trTotal = document.createElement('tr');
+  trTotal.className = 'total-row';
+  trTotal.innerHTML = `<td colspan="5">Total</td><td colspan="2"><span>${total.toFixed(2)}</span> kgCO₂e</td>`;
+  tbody.appendChild(trTotal);
+
+  // Stockage
+  sessionStorage.setItem('transportRows', JSON.stringify(transportRows.map(row => ({
+    ...row,
+    type_engin_id: row.type_engin_id || null
+  }))));
+
+  const emissionData = JSON.parse(localStorage.getItem("emissionData")) || {};
+  emissionData.transport = total;
+  const autresDetails = (emissionData.details || []).filter(item => item.categorie !== "Transport");
+  const nouveauxDetails = transportRows.map(row => ({
+    nom: row.engin || "",
+    categorie: "Transport",
+    scope: row.scope || "",
+    facteur: row.facteur || 0,
+    unite: "kg/km",
+    id: row.type_engin_id || null
+  }));
+  emissionData.details = [...autresDetails, ...nouveauxDetails];
+  localStorage.setItem("emissionData", JSON.stringify(emissionData));
+}
+
+function initTransportRows() {
+  ["scope_1", "scope_2", "scope_3"].forEach(scope => addTransportRow(scope));
+}
+
+function addTransportRow(scope) {
+  transportRows.push({
+    typeTransport: 'personne',
+    scope,
+    categorie: '',
+    engin: '',
+    facteur: 0,
+    description: '',
+    nombre: 1,
+    distance: 0,
+    type_engin_id: null
+  });
+  afficherDescription('');
+  saveAndRender();
+}
+
+function suivant() {
+  const totalEmission = transportRows.reduce((acc, row) =>
+    acc + ((row.facteur || 0) * (row.distance || 0) * (row.nombre || 1)), 0);
+
+  const emissionData = JSON.parse(localStorage.getItem("emissionData")) || {};
+  emissionData.transport = totalEmission;
+
+  const autresDetails = (emissionData.details || []).filter(item => item.categorie !== "Transport");
+  const nouveauxDetails = transportRows.map(row => ({
+    nom: row.engin || "",
+    categorie: "Transport",
+    scope: row.scope || "",
+    facteur: row.facteur || 0,
+    unite: "kg/km",
+    id: row.type_engin_id || null
+  }));
+
+  emissionData.details = [...autresDetails, ...nouveauxDetails];
+  localStorage.setItem("emissionData", JSON.stringify(emissionData));
+  window.location.href = "{{ url_for('energie') }}";
+}
+
+function handleQuit() {
+  window.location.href = "/";
+}
+
+function saveAndRender() {
+  renderTable();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const saved = sessionStorage.getItem('transportRows');
+  if (saved) {
+    transportRows = JSON.parse(saved);
+  }
+  renderTable();
+});
+</script>
+
+
+
+<!-- Google Translate Widget -->
+<div id="google_translate_element" style="position: fixed; top: 10px; right: 10px; z-index: 9999;"></div>
+
+<script type="text/javascript">
+  function googleTranslateElementInit() {
+    new google.translate.TranslateElement({
+      pageLanguage: 'fr',
+      includedLanguages: 'en,fr,pt,fon', // Tu peux ajouter d'autres langues ici
+      layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+      autoDisplay: false
+    }, 'google_translate_element');
+  }
+</script>
+
+<script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+</body>
+</html>

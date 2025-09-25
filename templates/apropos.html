@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>BOAD - Outil de Calcul Carbone</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  html { margin: 0; padding: 0; font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; background: #fdfcf9; color: #222; line-height: 1.6; }
+<!--  body { display: flex; flex-direction: column; min-height: 100vh; }-->
+body { margin: 0; padding: 0}
+ header {
+  background-color: #a71930;
+  color: #fff;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2rem;
+  height: 80px; /* <- ajoute ou ajuste cette ligne */
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  transition: background 0.3s;
+}
+
+  header.sticky { background-color: #870a20; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+
+ .header-left {
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+
+.header-left img {
+  height: 120px;  /* ↔️ Ajuste cette valeur selon la taille souhaitée */
+  width: auto;
+  display: block;
+  object-fit: contain;
+}
+
+  .header-center { text-align: center; flex-grow: 1; }
+  .header-center h1 { margin: 0; font-weight: 700; font-size: 1.75rem; }
+  .gold-initial { color: #FFD700; font-size: 2.5rem; font-weight: 700; }
+
+  nav.header-nav { display: flex; gap: 1rem; flex-wrap: wrap; }
+  nav.header-nav a { color: #fff; text-decoration: none; font-weight: 600; padding: 0.5rem 1rem; border-radius: 8px; transition: 0.3s; }
+  nav.header-nav a:hover { background-color: rgba(255,255,255,0.3); color: #ffebc2; }
+
+  main { flex-grow: 1; max-width: 1200px; margin: 3rem auto; padding: 0 1.5rem; }
+
+  section { display: flex; align-items: center; margin-bottom: 4rem; gap: 2rem; flex-wrap: wrap; opacity: 0; transform: translateY(50px); transition: all 0.8s ease-out; }
+  section.show { opacity: 1; transform: translateY(0); }
+  section:nth-child(even) { flex-direction: row-reverse; }
+
+  .section-img { flex: 1 1 350px; position: relative; overflow: hidden; border-radius: 14px; box-shadow: 0 8px 25px rgba(0,0,0,0.18); }
+  .section-img img { width: 100%; display: block; height: auto; transition: transform 0.4s ease; }
+  .section-img:hover img { transform: scale(1.05); }
+
+  .section-text { flex: 1 1 500px; }
+  .section-text h2 { color: #a00000; font-size: 2rem; margin-bottom: 1rem; border-bottom: 3px solid #a00000; padding-bottom: 0.3rem; }
+  .section-text h3 { color: #006400; font-size: 1.4rem; margin-bottom: 0.8rem; }
+  .section-text p { margin-bottom: 1rem; }
+  .section-text ul { padding-left: 1.5rem; list-style-type: square; margin-bottom: 0; }
+  .section-text ul li { margin-bottom: 0.7rem; }
+
+  .carbon-eval-link { text-align: center; margin-top: 2rem; }
+  .carbon-eval-link a {
+    background: linear-gradient(135deg, #a00000, #006400);
+    color: #fff; font-weight: 700; font-size: 1.3rem;
+    padding: 1rem 3rem; border-radius: 50px;
+    text-decoration: none; display: inline-block;
+    transition: 0.3s; text-transform: uppercase;
+  }
+  .carbon-eval-link a:hover { transform: scale(1.05); }
+
+  .confidentialite-text { max-width: 780px; margin: 3rem auto 0; font-size: 1rem; color: #555; text-align: center; font-style: italic; }
+
+  footer { background-color: #c9a200; color: white; text-align: center; padding: 1.2rem; font-weight: 700; }
+
+  @media (max-width: 900px) {
+    section { flex-direction: column; text-align: center; }
+    .section-img, .section-text { flex: 1 1 100%; }
+  }
+
+       body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('{{ url_for("static", filename="logo-boad.webp") }}');
+    background-repeat: repeat;
+    background-size: 80px auto;
+    opacity: 0.08; /* très léger fond */
+    pointer-events: none;
+    z-index: -1;
+  }
+
+</style>
+</head>
+<body>
+
+<header id="header">
+ <div class="header-left">
+    <img src="{{ url_for('static', filename='BOADCarbone.png') }}" alt="Logo BOAD" />
+  </div>
+  <div class="header-center">
+      <h1>
+      Evaluation Carbone
+    </h1>
+  </div>
+  <nav class="header-nav">
+    <a href="{{ url_for('index') }}">Accueil</a>
+    <a href="{{ url_for('contact') }}">Contacts</a>
+    <a href="{{ url_for('inscriptionclient') }}">Évaluer</a>
+    <a href="{{ url_for('aide') }}">Aide</a>
+  </nav>
+</header>
+
+<main id="main-content">
+  <!-- Les sections seront injectées par JS -->
+</main>
+
+<footer>
+  © 2025 BOAD - Banque Ouest Africaine de Développement. Tous droits réservés.
+</footer>
+
+<script>
+  // Données dynamiques des sections
+  const sectionsData = [
+    {
+      title: "La BOAD",
+      text: [
+        "La Banque Ouest Africaine de Développement (BOAD) est l’organe financier commun dédié au développement des pays membres de l’UMOA. Créée en 1973 et opérationnelle depuis 1976, elle regroupe le Bénin, Burkina Faso, Côte d’Ivoire, Guinée-Bissau, Mali, Niger, Sénégal et Togo.",
+        "Institution spécialisée et autonome, la BOAD soutient le développement harmonieux des États membres et participe activement à l’intégration économique en Afrique de l’Ouest."
+      ],
+      img: "{{ url_for('static', filename='boad.jpg') }}"
+    },
+    {
+      title: "Département du Financement du Développement Durable (DFDD)",
+      text: [
+        "La DFDD finance et accompagne les projets respectueux de l'environnement et socialement responsables. Son objectif est d’intégrer les priorités de la Responsabilité Sociétale des Entreprises (RSE) dans les investissements régionaux."
+      ],
+      list: [
+        "Projets à faible émission de carbone.",
+        "Initiatives favorisant l’inclusion sociale et la création d’emplois locaux.",
+        "Promotion de la gouvernance responsable et de la transparence.",
+        "Solutions durables pour protéger l’environnement et les ressources naturelles."
+      ],
+      img: "{{ url_for('static', filename='boad_a_propos.jpg') }}"
+    }
+  ];
+
+  const main = document.getElementById('main-content');
+
+  sectionsData.forEach((sec, index) => {
+    const section = document.createElement('section');
+    section.innerHTML = `
+      <div class="section-img">
+        <img src="${sec.img}" alt="Image ${sec.title}" />
+      </div>
+      <div class="section-text">
+        <h2>${sec.title}</h2>
+        ${sec.text.map(p => `<p>${p}</p>`).join('')}
+        ${sec.list ? '<ul>' + sec.list.map(li => `<li>${li}</li>`).join('') + '</ul>' : ''}
+      </div>
+    `;
+    main.appendChild(section);
+  });
+
+  // Animation au scroll
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if(entry.isIntersecting){
+        entry.target.classList.add('show');
+      }
+    });
+  }, { threshold: 0.2 });
+
+  document.querySelectorAll('section').forEach(sec => observer.observe(sec));
+
+  // Sticky header
+  window.addEventListener('scroll', () => {
+    document.getElementById('header').classList.toggle('sticky', window.scrollY > 50);
+  });
+</script>
+
+
+<!-- Google Translate Widget -->
+<div id="google_translate_element" style="position: fixed; top: 10px; right: 10px; z-index: 9999;"></div>
+
+<script type="text/javascript">
+  function googleTranslateElementInit() {
+    new google.translate.TranslateElement({
+      pageLanguage: 'fr',
+      includedLanguages: 'en,fr,pt,fon', // Tu peux ajouter d'autres langues ici
+      layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+      autoDisplay: false
+    }, 'google_translate_element');
+  }
+</script>
+
+<script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+</body>
+</html>

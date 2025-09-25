@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Interface Autres - Émissions CO₂</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <style>
+  :root {
+    --boad-red: #a71930;
+    --boad-red-dark: #891625;
+    --white: #fff;
+    --boad-yellow: #FFCC00;
+    --boad-yellow-dark: #e6b800;
+  }
+
+  body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #fafafa;
+  }
+
+  .layout {
+    display: flex;
+    min-height: 100vh;
+  }
+
+  nav {
+    width: 220px;
+    background-color: var(--boad-red);
+    color: var(--white);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .nav-top {
+    padding-top: 30px;
+  }
+
+  .logo-container {
+    text-align: center;
+    margin-bottom: 30px;
+  }
+
+  .logo-container img {
+    max-height: 60px;
+  }
+
+  .menu-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 0 15px;
+  }
+
+  .menu-buttons a {
+    background-color: #c9a200;
+    color: var(--white);
+    padding: 12px;
+    text-align: center;
+    text-decoration: none;
+    border-radius: 6px;
+    font-weight: bold;
+    transition: background 0.3s ease;
+    user-select: none;
+  }
+
+  .menu-buttons a:hover {
+    background-color: #70121d;
+  }
+
+  .menu-buttons a.active {
+    background-color: #c9a200;
+    font-weight: bolder;
+  }
+
+  .quit-container {
+    padding: 20px 15px;
+    background-color: #c9a200;
+  }
+
+  .styled-button {
+    padding: 10px 16px;
+    background-color: var(--boad-red-dark);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    width: 100%;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    user-select: none;
+  }
+
+  .styled-button:hover {
+    background-color: #70121d;
+  }
+
+  .main-content {
+    flex-grow: 1;
+    padding: 20px;
+    padding-bottom: 70px;
+    background: white;
+    box-shadow: 0 0 10px rgb(0 0 0 / 0.1);
+    border-radius: 8px;
+    margin: 20px;
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  h2 {
+    color: var(--boad-red);
+    margin-bottom: 20px;
+  }
+
+  .add-buttons {
+    margin: 10px 0 20px;
+    display: flex;
+    gap: 15px;
+  }
+
+  .add-buttons button {
+    background-color: var(--boad-yellow);
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    color: #333;
+    transition: background-color 0.3s ease;
+    user-select: none;
+    flex-grow: 1;
+  }
+
+  .add-buttons button:hover {
+    background-color: var(--boad-yellow-dark);
+    color: #111;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    box-shadow: 0 0 10px rgb(0 0 0 / 0.05);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  th, td {
+    padding: 12px 15px;
+    border: 1px solid #ddd;
+    text-align: left;
+    font-size: 14px;
+  }
+
+  th {
+    background-color: var(--boad-red);
+    color: white;
+    user-select: none;
+  }
+
+  tr.section-title td {
+    background-color: #f4f4f4;
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--boad-red-dark);
+    user-select: none;
+  }
+
+  tr.subtotal-row td {
+    background-color: #fff8dc;
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--boad-red-dark);
+    user-select: none;
+  }
+
+  tr.total-row td {
+    background-color: var(--boad-red);
+    color: var(--white);
+    font-weight: bolder;
+    font-size: 16px;
+    user-select: none;
+  }
+
+  select, input[type="number"] {
+    width: 100%;
+    padding: 6px 8px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+    transition: border-color 0.3s ease;
+  }
+
+  select:focus, input[type="number"]:focus {
+    border-color: var(--boad-red);
+    outline: none;
+    box-shadow: 0 0 5px var(--boad-red);
+  }
+
+  .action-btn {
+    background: none;
+    border: none;
+    color: var(--boad-red);
+    font-size: 18px;
+    cursor: pointer;
+    user-select: none;
+    transition: color 0.3s ease;
+  }
+
+  .action-btn:hover {
+    color: var(--boad-red-dark);
+  }
+
+  #enginDescription {
+    margin-top: 20px;
+    background: #fff3cc;
+    padding: 15px;
+    border-left: 6px solid var(--boad-yellow);
+    border-radius: 4px;
+    color: #5c3a00;
+    font-style: italic;
+    min-height: 50px;
+  }
+
+  .fixed-nav-buttons {
+    position: fixed;
+    bottom: 0;
+    left: 220px;
+    right: 0;
+    background: #fff;
+    padding: 10px 20px;
+    box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+    display: flex;
+    justify-content: space-between;
+    z-index: 1000;
+  }
+
+  .fixed-nav-buttons button {
+    background-color: var(--boad-yellow);
+    color: #333;
+    border: none;
+    border-radius: 6px;
+    padding: 12px 24px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    user-select: none;
+    min-width: 160px;
+  }
+
+  .fixed-nav-buttons button:hover {
+    background-color: var(--boad-yellow-dark);
+    color: #111;
+  }
+</style>
+
+
+</head>
+<body>
+  <div class="layout">
+    <nav>
+      <div class="nav-top">
+        <div class="logo-container">
+          <img src="{{ url_for('static', filename='logo-boad.webp') }}" alt="Logo BOAD" />
+        </div>
+        <div class="menu-buttons">
+          <a href="/">Accueil</a>
+          <a href="/transport">Transport</a>
+          <a href="/energie">Énergie</a>
+          <a href="/equipements">Équipements</a>
+          <a href="/autre" class="active">Autres</a>
+          <a href="/resultat">Résultats</a>
+        </div>
+      </div>
+      <div class="quit-container">
+        <button onclick="handleQuit()" class="styled-button">Quitter</button>
+      </div>
+    </nav>
+
+    <div class="main-content">
+      <div class="container">
+        <h2>Autres postes d'émissions – CO₂</h2>
+
+        <div class="add-buttons">
+          <button type="button" onclick="addAutreRow()">➕ Ajouter un poste</button>
+        </div>
+
+        <table id="autreTable">
+          <thead>
+            <tr>
+              <th>Nom</th>
+              <th>Quantité</th>
+              <th>Unité</th>
+              <th>Émissions (kg CO₂)</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="autreBody"></tbody>
+        </table>
+
+        <div id="autreDescription"></div>
+
+        <div class="fixed-nav-buttons">
+          <button type="button" onclick="precedent()">←(4/4) Étape précédente</button>
+          <button type="button" onclick="suivant()">Consulter le rapport (4/4)→</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+<script>
+  const autresData = {{ autres | tojson }};
+  let autreRows = [];
+
+  function afficherDescription(description) {
+    document.getElementById('autreDescription').textContent = description || '';
+  }
+
+  function renderTable() {
+    const tbody = document.getElementById('autreBody');
+    tbody.innerHTML = '';
+
+    autreRows.forEach(row => {
+      const tr = document.createElement('tr');
+
+      // Nom (select)
+      const tdNom = document.createElement('td');
+      const selNom = document.createElement('select');
+      selNom.innerHTML = '<option value="">-- Choisir --</option>';
+      autresData.forEach(item => {
+        const opt = document.createElement('option');
+        opt.value = item.nom;
+        opt.textContent = item.nom;
+        if (item.nom === row.nom) opt.selected = true;
+        selNom.appendChild(opt);
+      });
+      selNom.onchange = e => {
+        const selected = e.target.value;
+        const match = autresData.find(a => a.nom === selected);
+        if (match) {
+          row.nom = match.nom;
+          row.facteur = match.facteur;
+          row.unite = match.unite;
+          row.description = match.description;
+          afficherDescription(match.description);
+        }
+        renderTable();
+      };
+      tdNom.appendChild(selNom);
+      tr.appendChild(tdNom);
+
+      // Quantité
+      const tdQte = document.createElement('td');
+      const input = document.createElement('input');
+      input.type = 'number';
+      input.min = '0';
+      input.value = row.quantite || 0;
+      input.oninput = e => {
+        row.quantite = parseFloat(e.target.value) || 0;
+        renderTable();
+      };
+      tdQte.appendChild(input);
+      tr.appendChild(tdQte);
+
+      // Unité
+      const tdUnit = document.createElement('td');
+      tdUnit.textContent = row.unite || 'U';
+      tr.appendChild(tdUnit);
+
+      // Émissions
+      const tdEm = document.createElement('td');
+      const total = (row.quantite || 0) * (row.facteur || 0);
+      tdEm.textContent = total.toFixed(2);
+      tr.appendChild(tdEm);
+
+      // Action
+      const tdAct = document.createElement('td');
+      const btn = document.createElement('button');
+      btn.className = 'action-btn';
+      btn.textContent = '🗑️';
+      btn.onclick = () => {
+        autreRows.splice(autreRows.indexOf(row), 1);
+        afficherDescription('');
+        renderTable();
+      };
+      tdAct.appendChild(btn);
+      tr.appendChild(tdAct);
+
+      tbody.appendChild(tr);
+    });
+
+    // Total
+    const total = autreRows.reduce((acc, r) => acc + (r.quantite || 0) * (r.facteur || 0), 0);
+    const trTot = document.createElement('tr');
+    trTot.className = 'total-row';
+    const tdT1 = document.createElement('td');
+    tdT1.colSpan = 4;
+    tdT1.textContent = 'Total';
+    const tdT2 = document.createElement('td');
+    tdT2.innerHTML = `<span>${total.toFixed(2)}</span> kg CO₂`;
+    trTot.appendChild(tdT1);
+    trTot.appendChild(tdT2);
+    tbody.appendChild(trTot);
+
+    sessionStorage.setItem('autreRows', JSON.stringify(autreRows));
+
+    // 🔄 Enregistrement dans localStorage.emissionData
+    const emissionData = JSON.parse(localStorage.getItem("emissionData")) || {};
+    emissionData.autres = total;
+
+    const autresDetails = autreRows.map(row => ({
+      nom: row.nom,
+      categorie: "Autres",
+      scope: "Hors périmètre défini",
+      facteur: row.facteur,
+      unite: row.unite
+    }));
+
+    const autresActuels = (emissionData.details || []).filter(d => d.categorie !== "Autres");
+    emissionData.details = [...autresActuels, ...autresDetails];
+
+    localStorage.setItem("emissionData", JSON.stringify(emissionData));
+  }
+
+  function addAutreRow() {
+    autreRows.push({
+      nom: '',
+      quantite: 0,
+      facteur: 0,
+      unite: 'U',
+      description: ''
+    });
+    afficherDescription('');
+    renderTable();
+  }
+
+  function precedent() {
+    window.location.href = "{{ url_for('equipements') }}";
+  }
+
+  function suivant() {
+    sessionStorage.removeItem('autreRows');
+    window.location.href = "{{ url_for('resultat') }}";
+  }
+
+  function handleQuit() {
+    sessionStorage.removeItem('autreRows');
+    window.location.href = "/";
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const saved = sessionStorage.getItem('autreRows');
+    if (saved) {
+      autreRows = JSON.parse(saved);
+    }
+    renderTable();
+  });
+</script>
+
+
+</body>
+</html>

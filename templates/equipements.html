@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Interface Équipements - Émissions CO₂</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <style>
+    :root {
+      --boad-red: #a71930;
+      --boad-red-dark: #891625;
+      --white: #fff;
+      --boad-yellow: #FFCC00;
+      --boad-yellow-dark: #e6b800;
+    }
+
+    body { margin: 0; font-family: Arial, sans-serif; background: #fafafa; }
+
+    /* ==== BARRE DE MENU HORIZONTALE ==== */
+
+  header {
+  background-color: var(--boad-red);
+  height: 80px;
+  padding: 0 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  overflow: hidden;
+}
+
+    .header-left {
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+
+.header-left img {
+  height: 120px;
+  width: auto;
+  display: block;
+  object-fit: contain;
+}
+
+    .header-center { flex-grow: 1; min-width: 250px; text-align: center; }
+    .header-center h1 {
+      margin: 0;
+      font-weight: 700;
+      font-size: 1.75rem;
+      color: #fff;
+      user-select: none;
+    }
+    nav.header-nav {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    nav.header-nav a {
+      color: #fff;
+      text-decoration: none;
+      font-weight: 600;
+      padding: 0.6rem 1.2rem;
+      border-radius: 8px;
+      transition: background-color 0.3s ease, color 0.3s ease;
+      white-space: nowrap;
+      font-size: 1rem;
+    }
+    nav.header-nav a:hover,
+    nav.header-nav a:focus {
+      background-color: rgba(255, 255, 255, 0.3);
+      outline: none;
+      color: #ffebc2;
+    }
+    .quit-btn {
+      background-color: var(--boad-red-dark);
+      color: white;
+      padding: 0.6rem 1.2rem;
+      border: none;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    .quit-btn:hover { background-color: #70121d; }
+
+    /* ==== CONTENU ==== */
+    .main-content {
+      max-width: 1100px;
+      margin: 2rem auto;
+      padding: 20px;
+      background: white;
+      box-shadow: 0 0 10px rgb(0 0 0 / 0.1);
+      border-radius: 8px;
+    }
+
+    h2 { color: var(--boad-red); margin-bottom: 20px; }
+
+    .add-buttons {
+  margin: 10px 0 20px;
+  display: flex;
+  justify-content: center; /* Centrer horizontalement */
+}
+
+.add-buttons::before,
+.add-buttons::after {
+  content: "";
+  flex: 1; /* Occupe 1/3 chacun */
+}
+
+.add-buttons button {
+  flex: 1; /* Le bouton occupe aussi 1/3 */
+  max-width: 250px; /* Pour éviter qu'il devienne trop large sur grands écrans */
+  background-color: var(--boad-yellow);
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  color: #333;
+  transition: background-color 0.3s ease;
+}
+
+    .add-buttons button:hover {
+      background-color: var(--boad-yellow-dark);
+      color: #111;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    th, td {
+      padding: 12px 15px;
+      border: 1px solid #ddd;
+      text-align: left;
+      font-size: 14px;
+    }
+    th {
+      background-color: var(--boad-red);
+      color: white;
+      user-select: none;
+    }
+    tr.section-title td {
+      background-color: #f4f4f4;
+      font-weight: 700;
+      font-size: 16px;
+      color: var(--boad-red-dark);
+    }
+    tr.subtotal-row td {
+      background-color: #fff8dc;
+      font-weight: 600;
+      font-size: 15px;
+      color: var(--boad-red-dark);
+    }
+    tr.total-row td {
+      background-color: var(--boad-red);
+      color: var(--white);
+      font-weight: bolder;
+      font-size: 16px;
+    }
+
+    select, input[type="number"] {
+      width: 100%;
+      padding: 6px 8px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+      transition: border-color 0.3s ease;
+    }
+    select:focus, input[type="number"]:focus {
+      border-color: var(--boad-red);
+      outline: none;
+      box-shadow: 0 0 5px var(--boad-red);
+    }
+
+    .action-btn {
+      background: none;
+      border: none;
+      color: var(--boad-red);
+      font-size: 18px;
+      cursor: pointer;
+      transition: color 0.3s ease;
+    }
+    .action-btn:hover { color: var(--boad-red-dark); }
+
+    #enginDescription {
+      margin-top: 20px;
+      background: #fff3cc;
+      padding: 15px;
+      border-left: 6px solid var(--boad-yellow);
+      border-radius: 4px;
+      color: #5c3a00;
+      font-style: italic;
+      min-height: 50px;
+    }
+
+    .fixed-nav-buttons {
+      margin-top: 20px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .fixed-nav-buttons button {
+      background-color: var(--boad-yellow);
+      color: #333;
+      border: none;
+      border-radius: 6px;
+      padding: 12px 24px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      min-width: 160px;
+    }
+    .fixed-nav-buttons button:hover {
+      background-color: var(--boad-yellow-dark);
+      color: #111;
+    }
+
+    body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('{{ url_for("static", filename="logo-boad.webp") }}');
+    background-repeat: repeat;
+    background-size: 80px auto;
+    opacity: 0.08; /* très léger fond */
+    pointer-events: none;
+    z-index: -1;
+  }
+
+
+    /* Badges "mode" */
+.chip { display:inline-block; padding:4px 10px; border-radius:999px; font-size:12px; font-weight:700; }
+.chip-predef { background:#f1f5f9; color:#334155; border:1px solid #e2e8f0; }
+.chip-manuel { background:#fff1c2; color:#5c3a00; border:1px solid #ffe08a; }
+
+/* Champs compacts et lisibles */
+.input-compact { width:100%; padding:8px 10px; border-radius:6px; border:1px solid #cbd5e1; font-size:14px; }
+.input-compact:focus { outline:none; border-color: var(--boad-red); box-shadow: 0 0 0 3px rgb(167 25 48 / 15%); }
+.input-readonly { background:#f8fafc; color:#475569; }
+
+/* Aide visuelle pour lignes */
+tr td { vertical-align: middle; }
+
+/* Placeholders plus visibles */
+::placeholder { color:#94a3b8; }
+
+/* Ajuste les lignes "section" / totaux pour 7 colonnes */
+tr.section-title td { font-size: 15px; }
+
+/* Évite que les inputs débordent du tableau */
+td input, td select {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Colonnes numériques plus étroites (facteur / quantité) */
+td:nth-child(4) input,
+td:nth-child(5) input {
+  text-align: right;
+  width: 100px;
+}
+
+
+  </style>
+</head>
+<body>
+  <!-- HEADER horizontal -->
+  <header>
+    <div class="header-left">
+    <img src="{{ url_for('static', filename='BOADCarbone.png') }}" alt="Logo BOAD" />
+  </div>
+    <div class="header-center">
+      <h1>Équipements – Émissions CO₂</h1>
+    </div>
+    <nav class="header-nav">
+      <a href="{{ url_for('index') }}">Accueil</a>
+      <a href="{{ url_for('apropos') }}">À propos</a>
+      <a href="{{ url_for('contact') }}">Contacts</a>
+      <a href="{{ url_for('aide') }}">Aide</a>
+    </nav>
+  </header>
+
+  <main class="main-content">
+    <h2>Équipements</h2>
+
+
+   <div class="add-buttons">
+  <button type="button" onclick="addEquipementRow('scope_3')">➕ Ajouter Scope 3</button>
+  <button type="button" onclick="addManualRow('scope_3')">➕ Ajouter Manuel</button>
+</div>
+
+
+    <table id="equipementTable">
+  <thead>
+    <tr>
+      <th>Mode</th>
+      <th>Catégorie</th>
+      <th>Type d'équipement</th>
+      <th>Facteur (kgCO₂e/U)</th>
+      <th>Quantité</th>
+      <th>Émissions (kgCO₂e)</th>
+      <th>Action</th>
+    </tr>
+  </thead>
+  <tbody id="equipementBody"></tbody>
+</table>
+
+    <div id="enginDescription"></div>
+
+    <div class="fixed-nav-buttons">
+      <button type="button" onclick="precedent()">← (3/3) Étape précédente</button>
+      <button type="button" onclick="suivant()">Compensation carbone →</button>
+    </div>
+  </main>
+
+  <script>
+  const enginsData = {{ engins_equipements | tojson }};
+  let equipementRows = [];
+
+  // ---------- Helpers format / parse ----------
+  function parseNum(v) {
+    if (typeof v === 'number') return v;
+    if (v === null || v === undefined) return 0;
+    const n = parseFloat(String(v).replace(',', '.'));
+    return isNaN(n) ? 0 : n;
+  }
+  function fmt2(x) {
+    return (x || 0).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function afficherDescription(description) {
+    document.getElementById('enginDescription').textContent = description || '';
+  }
+
+  function renderTable() {
+    const tbody = document.getElementById('equipementBody');
+    tbody.innerHTML = '';
+
+    const scope = 'scope_3';
+    const rowsFiltered = equipementRows.filter(r => r.scope === scope);
+
+    // --------- Titre de section ---------
+    const trTitle = document.createElement('tr');
+    trTitle.className = 'section-title';
+    const tdTitle = document.createElement('td');
+    tdTitle.colSpan = 7;
+    tdTitle.textContent = "SCOPE 3 — ÉQUIPEMENTS";
+    trTitle.appendChild(tdTitle);
+    tbody.appendChild(trTitle);
+
+    // --------- Lignes données ---------
+    rowsFiltered.forEach(row => {
+      const tr = document.createElement('tr');
+
+      // Col 1: Mode
+      const tdMode = document.createElement('td');
+      const chip = document.createElement('span');
+      chip.className = `chip ${row.mode === 'manuel' ? 'chip-manuel' : 'chip-predef'}`;
+      chip.textContent = row.mode === 'manuel' ? 'Manuel' : 'Pré-défini';
+      tdMode.appendChild(chip);
+      tr.appendChild(tdMode);
+
+      // Col 2: Catégorie
+      const tdCat = document.createElement('td');
+      if (row.mode === "manuel") {
+        tdCat.innerHTML = `<span style="color:#64748b">— (saisi manuel)</span>`;
+      } else {
+        const selCat = document.createElement('select');
+        selCat.className = 'input-compact';
+        selCat.innerHTML = `<option value="">— Choisir une catégorie —</option>`;
+        Object.keys(enginsData[scope]).forEach(cat => {
+          const opt = document.createElement('option');
+          opt.value = cat;
+          opt.textContent = cat;
+          if (row.categorie === cat) opt.selected = true;
+          selCat.appendChild(opt);
+        });
+        selCat.onchange = e => {
+          row.categorie = e.target.value;
+          row.engin = '';
+          row.facteur = 0;
+          row.description = '';
+          row.unite = 'U';
+          afficherDescription('');
+          saveAndRender();
+        };
+        tdCat.appendChild(selCat);
+      }
+      tr.appendChild(tdCat);
+
+      // Col 3: Type d'équipement
+      const tdEngin = document.createElement('td');
+      if (row.mode === "manuel") {
+        const inputNom = document.createElement('input');
+        inputNom.type = "text";
+        inputNom.className = "input-compact";
+        inputNom.placeholder = "Nom de l'équipement";
+        inputNom.value = row.engin || "";
+
+        // ✅ Mise à jour du modèle seulement
+        inputNom.oninput = e => { row.engin = e.target.value; sessionStorage.setItem('equipementRows', JSON.stringify(equipementRows)); };
+        // ✅ Re-render seulement quand on sort du champ
+        inputNom.onblur = () => saveAndRender();
+
+        tdEngin.appendChild(inputNom);
+
+        if (row._autofocus) {
+          setTimeout(() => inputNom.focus(), 0);
+          row._autofocus = false;
+        }
+      } else {
+        const selEngin = document.createElement('select');
+        selEngin.className = 'input-compact';
+        selEngin.innerHTML = `<option value="">— Choisir l'équipement —</option>`;
+        if (row.categorie && enginsData[scope][row.categorie]) {
+          enginsData[scope][row.categorie].forEach(engin => {
+            const opt = document.createElement('option');
+            opt.value = engin.nom;
+            opt.textContent = engin.nom;
+            if (engin.nom === row.engin) opt.selected = true;
+            selEngin.appendChild(opt);
+          });
+        }
+        selEngin.onchange = e => {
+          const selected = e.target.value;
+          row.engin = selected;
+          if (row.categorie) {
+            const match = enginsData[scope][row.categorie].find(engin => engin.nom === selected);
+            row.facteur = match ? parseNum(match.facteur) : 0;
+            row.description = match ? match.description : '';
+            row.unite = match ? (match.unite || 'U') : 'U';
+            afficherDescription(row.description);
+          }
+          saveAndRender();
+        };
+        tdEngin.appendChild(selEngin);
+      }
+      tr.appendChild(tdEngin);
+
+      // Col 4: Facteur
+      const tdFacteur = document.createElement('td');
+      if (row.mode === "manuel") {
+        const inputFacteur = document.createElement('input');
+        inputFacteur.type = "number";
+        inputFacteur.inputMode = "decimal";
+        inputFacteur.step = "any";
+        inputFacteur.min = "0";
+        inputFacteur.placeholder = "ex. 2,75";
+        inputFacteur.className = "input-compact";
+        inputFacteur.value = (row.facteur || 0);
+
+        inputFacteur.oninput = e => { row.facteur = parseNum(e.target.value); sessionStorage.setItem('equipementRows', JSON.stringify(equipementRows)); };
+        inputFacteur.onblur = () => saveAndRender();
+
+        tdFacteur.appendChild(inputFacteur);
+      } else {
+        const ro = document.createElement('input');
+        ro.type = 'text';
+        ro.readOnly = true;
+        ro.className = 'input-compact input-readonly';
+        ro.value = row.facteur ? row.facteur : 0;
+        tdFacteur.appendChild(ro);
+      }
+      tr.appendChild(tdFacteur);
+
+      // Col 5: Quantité
+      const tdQte = document.createElement('td');
+      const inputQte = document.createElement('input');
+      inputQte.type = 'number';
+      inputQte.inputMode = "decimal";
+      inputQte.step = 'any';
+      inputQte.min = '0';
+      inputQte.placeholder = "ex. 10";
+      inputQte.className = 'input-compact';
+      inputQte.value = (row.quantite ?? 0);
+
+      inputQte.oninput = e => { row.quantite = parseNum(e.target.value); sessionStorage.setItem('equipementRows', JSON.stringify(equipementRows)); };
+      inputQte.onblur = () => saveAndRender();
+
+      tdQte.appendChild(inputQte);
+      tr.appendChild(tdQte);
+
+      // Col 6: Émissions
+      const tdEm = document.createElement('td');
+      const total = parseNum(row.facteur) * parseNum(row.quantite);
+      tdEm.textContent = fmt2(total);
+      tr.appendChild(tdEm);
+
+      // Col 7: Action
+      const tdAct = document.createElement('td');
+      const btn = document.createElement('button');
+      btn.className = 'action-btn';
+      btn.title = "Supprimer la ligne";
+      btn.textContent = '🗑️';
+      btn.onclick = () => {
+        equipementRows.splice(equipementRows.indexOf(row), 1);
+        afficherDescription('');
+        saveAndRender();
+      };
+      tdAct.appendChild(btn);
+      tr.appendChild(tdAct);
+
+      tbody.appendChild(tr);
+    });
+
+    // --------- Sous-total & Total ---------
+    const subtotal = rowsFiltered.reduce((acc, r) => acc + (parseNum(r.facteur) * parseNum(r.quantite)), 0);
+    const trSub = document.createElement('tr');
+    trSub.className = 'subtotal-row';
+    trSub.innerHTML = `<td colspan="6">Sous-total scope 3 (équipements)</td><td>${fmt2(subtotal)} kgCO₂e</td>`;
+    tbody.appendChild(trSub);
+
+    const total = equipementRows.reduce((acc, r) => acc + (parseNum(r.facteur) * parseNum(r.quantite)), 0);
+    const trTot = document.createElement('tr');
+    trTot.className = 'total-row';
+    trTot.innerHTML = `<td colspan="6">Total</td><td>${fmt2(total)} kgCO₂e</td>`;
+    tbody.appendChild(trTot);
+
+    // --------- Persistance + Résultat final ---------
+    sessionStorage.setItem('equipementRows', JSON.stringify(equipementRows));
+
+    const emissionData = JSON.parse(localStorage.getItem("emissionData")) || {};
+    emissionData.equipements = total;
+
+    const autresDetails = (emissionData.details || []).filter(item => item.categorie !== "Équipements");
+    const nouveauxDetails = equipementRows.map(row => ({
+      nom: row.engin || '(non renseigné)',
+      categorie: "Équipements",
+      scope: row.scope,
+      facteur: parseNum(row.facteur),
+      unite: row.unite || 'U'
+    }));
+    emissionData.details = [...autresDetails, ...nouveauxDetails];
+    localStorage.setItem("emissionData", JSON.stringify(emissionData));
+  }
+
+  function addEquipementRow(scope) {
+    equipementRows.push({
+      scope,
+      mode: "predefini",
+      categorie: '',
+      engin: '',
+      description: '',
+      quantite: 0,
+      facteur: 0,
+      unite: 'U'
+    });
+    afficherDescription('');
+    saveAndRender();
+  }
+
+  function addManualRow(scope) {
+    equipementRows.push({
+      scope,
+      mode: "manuel",
+      categorie: 'manuel',
+      engin: '',
+      description: '',
+      quantite: 0,
+      facteur: 0,
+      unite: 'U',
+      _autofocus: true
+    });
+    afficherDescription('');
+    saveAndRender();
+  }
+
+  function precedent() { window.location.href = "{{ url_for('energie') }}"; }
+  function suivant() { sessionStorage.removeItem('autreRows'); window.location.href = "{{ url_for('arbres') }}"; }
+  function handleQuit() { sessionStorage.removeItem('equipementRows'); window.location.href = "/"; }
+
+  function saveAndRender() { renderTable(); }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const saved = sessionStorage.getItem('equipementRows');
+    if (saved) { equipementRows = JSON.parse(saved); }
+    renderTable();
+  });
+</script>
+
+
+
+<!-- Google Translate Widget -->
+<div id="google_translate_element" style="position: fixed; top: 10px; right: 10px; z-index: 9999;"></div>
+
+<script type="text/javascript">
+  function googleTranslateElementInit() {
+    new google.translate.TranslateElement({
+      pageLanguage: 'fr',
+      includedLanguages: 'en,fr,pt,fon', // Tu peux ajouter d'autres langues ici
+      layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+      autoDisplay: false
+    }, 'google_translate_element');
+  }
+</script>
+
+<script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+
+</body>
+</html>

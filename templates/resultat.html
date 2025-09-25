@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Rapport Émissions CO₂ – BOAD</title>
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js"></script>
+
+  <style>
+    :root {
+      --boad-red: #a71930;
+      --boad-red-dark: #891625;
+      --white: #fff;
+      --boad-yellow: #FFCC00;
+      --boad-yellow-dark: #e6b800;
+    }
+
+<!--    /* Reset et style général */-->
+<!--    body {-->
+<!--      margin: 0;-->
+<!--      font-family: Arial, sans-serif;-->
+<!--      background: #fafafa;-->
+<!--      color: #333;-->
+<!--    }-->
+
+    /* === BARRE DE NAVIGATION HORIZONTALE === */
+ header {
+  background-color: var(--boad-red);
+  height: 80px;
+  padding: 0 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  overflow: hidden;
+}
+
+
+   .header-left {
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+
+.header-left img {
+  height: 120px;
+  width: auto;
+  display: block;
+  object-fit: contain;
+}
+
+
+    .header-center {
+      flex-grow: 1;
+      min-width: 250px;
+      text-align: center;
+    }
+
+    .header-center h1 {
+      margin: 0;
+      font-weight: 700;
+      font-size: 1.75rem;
+      color: var(--white);
+      user-select: none;
+    }
+
+    nav.header-nav {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    nav.header-nav a {
+      color: var(--white);
+      text-decoration: none;
+      font-weight: 600;
+      padding: 0.6rem 1.2rem;
+      border-radius: 8px;
+      transition: background-color 0.3s ease, color 0.3s ease;
+      white-space: nowrap;
+      font-size: 1rem;
+      user-select: none;
+    }
+
+    nav.header-nav a:hover,
+    nav.header-nav a:focus {
+      background-color: rgba(255, 255, 255, 0.3);
+      outline: none;
+      color: #ffebc2;
+    }
+
+    nav.header-nav a.active {
+      background-color: var(--boad-yellow);
+      color: #333;
+      pointer-events: none;
+      font-weight: bolder;
+    }
+
+    /* === CONTENU PRINCIPAL === */
+    main.main-content {
+      max-width: 1100px;
+      margin: 2rem auto;
+      padding: 20px;
+      background: white;
+      box-shadow: 0 0 10px rgb(0 0 0 / 0.1);
+      border-radius: 8px;
+    }
+
+    /* Bouton quitter placé en bas à droite */
+    .quit-container {
+      text-align: right;
+      margin: 20px 30px 0 0;
+    }
+    .quit-btn {
+      background-color: var(--boad-red-dark);
+      color: white;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      user-select: none;
+    }
+    .quit-btn:hover,
+    .quit-btn:focus {
+      background-color: #70121d;
+      outline: none;
+    }
+
+    /* Tableaux, sections, etc. */
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 15px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+      font-size: 0.9rem;
+    }
+    th {
+      background-color: var(--boad-yellow);
+      color: var(--white);
+      user-select: none;
+    }
+
+@media print {
+  .quit-btn,
+  header,
+  nav.header-nav {
+    display: none;
+  }
+  body {
+    margin: 0;
+  }
+  main.main-content {
+    padding: 0;
+    max-width: 100%;
+    overflow-x: auto; /* Ajoute cette ligne */
+  }
+
+  /* Empêcher coupure des lignes et tableau */
+  table, tr, td, th, tbody, thead, tfoot {
+    page-break-inside: avoid !important;
+  }
+
+  table {
+    page-break-after: auto;
+  }
+
+  #details-table {
+    page-break-inside: avoid !important;
+  }
+
+  #details-table {
+  display: block !important;
+  overflow: visible !important;
+  max-height: none !important;
+}
+
+
+}
+
+
+    /* Texte blanc dans le header du rapport */
+    #report > header {
+      color: white;
+    }
+
+    .fixed-nav-buttons {
+  margin-top: 20px;
+  display: flex;
+  justify-content: space-between;
+}
+.fixed-nav-buttons button {
+  background-color: var(--boad-yellow);
+  color: #333;
+  border: none;
+  border-radius: 6px;
+  padding: 12px 24px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  min-width: 160px;
+}
+.fixed-nav-buttons button:hover {
+  background-color: var(--boad-yellow-dark);
+  color: #111;
+}
+
+    .centered-logo {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100px; /* ajuste selon la hauteur souhaitée */
+}
+
+.centered-logo img {
+  height: 80px; /* ajuste pour agrandir le logo */
+  object-fit: contain;
+}
+
+ body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('{{ url_for("static", filename="logo-boad.webp") }}');
+    background-repeat: repeat;
+    background-size: 80px auto;
+    opacity: 0.08; /* très léger fond */
+    pointer-events: none;
+    z-index: -1;
+  }
+
+    .project-info {
+  background-color: #f4f4f4;
+  border-left: 6px solid var(--boad-red);
+  padding: 16px 24px;
+  margin: 20px 0;
+  border-radius: 6px;
+}
+
+.project-title {
+  margin-top: 0;
+  font-size: 1.3rem;
+  color: var(--boad-red-dark);
+}
+
+.user-details p {
+  margin: 4px 0;
+  font-size: 0.95rem;
+  color: #444;
+}
+
+
+  </style>
+</head>
+<body>
+
+  <!-- HEADER avec navigation horizontale -->
+  <header role="banner">
+    <div class="header-left">
+    <img src="{{ url_for('static', filename='BOADCarbone.png') }}" alt="Logo BOAD" />
+  </div>
+
+    <div class="header-center">
+      <h1>Rapport Émissions CO₂ – BOAD</h1>
+    </div>
+
+    <nav class="header-nav" role="navigation" aria-label="Menu principal">
+      <a href="{{ url_for('index') }}" role="link" aria-current="{{ 'page' if request.path == '/' else 'false' }}">Accueil</a>
+      <a href="{{ url_for('apropos') }}" role="link" aria-current="{{ 'page' if request.path == '/apropos' else 'false' }}">À propos</a>
+      <a href="{{ url_for('contact') }}" role="link" aria-current="{{ 'page' if request.path == '/contact' else 'false' }}">Contact</a>
+      <a href="{{ url_for('aide') }}" role="link" aria-current="{{ 'page' if request.path == '/aide' else 'false' }}">Aide</a>
+    </nav>
+  </header>
+
+  <main class="main-content" role="main" aria-labelledby="main-title">
+    <h2 id="main-title">Rapport Global des Émissions de CO₂</h2>
+
+    <section id="report" aria-live="polite" aria-atomic="true">
+
+
+      <div class="header-left centered-logo">
+  <img src="{{ url_for('static', filename='logo-boad.webp') }}" alt="Logo BOAD" />
+  </div>
+
+      <div class="project-info">
+  <h3 class="project-title">Projet : {{ user_info.nom_projet or 'N/A' }}</h3>
+  <div class="user-details">
+    <p><strong>Nom :</strong> {{ user_info.nom or 'N/A' }}</p>
+    <p><strong>Email :</strong> {{ user_info.email or 'N/A' }}</p>
+    <p><strong>Téléphone :</strong> {{ user_info.telephone or 'N/A' }}</p>
+    <p><strong>Durée :</strong> {{ user_info.duree_projet or 'N/A' }} Mois</p>
+  </div>
+</div>
+
+
+      <section aria-labelledby="cat-summary-title">
+        <h3 id="cat-summary-title">Résumé des émissions par catégorie</h3>
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Catégorie</th>
+              <th scope="col">Émissions (kgCO₂e)</th>
+            </tr>
+          </thead>
+          <tbody id="summary-table" aria-describedby="total-emissions"></tbody>
+
+          <tfoot>
+  <tr>
+    <td><strong>Total émissions brutes</strong></td>
+    <td id="emission-brute" style="color:#333;"><strong>0.00 kgCO₂e</strong></td>
+  </tr>
+  <tr>
+    <td><strong>Compensation</strong></td>
+    <td id="emission-compensee" style="color:green;"><strong>− 0.00 kgCO₂e</strong></td>
+  </tr>
+  <tr>
+    <td><strong>Émissions nettes</strong></td>
+    <td id="emission-nette" style="color:#d32f2f;"><strong>= 0.00 kgCO₂e</strong></td>
+  </tr>
+</tfoot>
+
+
+        </table>
+      </section>
+
+      <section aria-labelledby="charts-title">
+        <h3 id="charts-title">Visualisation graphique</h3>
+        <div style="display:flex; flex-wrap: wrap; gap: 30px; justify-content:center;">
+          <div style="flex:1 1 300px; max-width:360px; background:#fff; padding:15px; border-radius:8px; border:1px solid #ddd; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+            <h4 style="text-align:center;">Diagramme circulaire</h4>
+            <canvas id="emissionChartDoughnut" role="presentation" aria-hidden="true"></canvas>
+          </div>
+        </div>
+      </section>
+      <br>
+      <br>
+
+      <section aria-labelledby="details-title">
+        <h3 id="details-title">Détails des éléments saisis</h3>
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Nom</th>
+              <th scope="col">Catégorie</th>
+              <th scope="col">Scope</th>
+              <th scope="col">Facteur d'émission</th>
+              <th scope="col">Unité</th>
+<!--              <th scope="col">Quantité</th>-->
+<!--              <th scope="col">Émissions (kgCO₂e)</th>-->
+            </tr>
+          </thead>
+          <tbody id="details-table"></tbody>
+        </table>
+      </section>
+
+<!--      <section class="reco-section" aria-labelledby="recommendations-title">-->
+<!--        <h3 id="recommendations-title">Recommandations pour la réduction des émissions</h3>-->
+
+<!--        <div id="reco-transport" aria-labelledby="reco-transport-title">-->
+<!--          <h4 id="reco-transport-title">Transport</h4>-->
+<!--          <ul id="reco-transport-list"></ul>-->
+<!--        </div>-->
+
+<!--        <div id="reco-energie" aria-labelledby="reco-energie-title">-->
+<!--          <h4 id="reco-energie-title">Énergie</h4>-->
+<!--          <ul id="reco-energie-list"></ul>-->
+<!--        </div>-->
+
+<!--        <div id="reco-equipements" aria-labelledby="reco-equipements-title">-->
+<!--          <h4 id="reco-equipements-title">Équipements</h4>-->
+<!--          <ul id="reco-equipements-list"></ul>-->
+<!--        </div>-->
+<!--      </section>-->
+<!--    </section>-->
+
+<!--    <section id="suggestions" aria-labelledby="suggestions-title">-->
+<!--      <h3 id="suggestions-title">Suggestions pour réduire les émissions</h3>-->
+<!--      <ul id="suggestion-list"></ul>-->
+<!--    </section>-->
+
+    <button class="quit-btn" onclick="clearAndQuit()" aria-label="Quitter et effacer les données" style="margin-top: 30px;">Quitter</button>
+    <button class="quit-btn" onclick="downloadPDF()" aria-label="Télécharger le rapport en PDF" style="margin-left: 10px;">📄 Télécharger le rapport en PDF</button>
+
+  </main>
+<div class="fixed-nav-buttons">
+  <button type="button" onclick="window.location.href='arbres'">← Étape précédente</button>
+</div>
+
+<script>
+  async function loadData() {
+    const raw = localStorage.getItem("emissionData");
+    if (!raw) {
+      alert("Aucune donnée d'émission trouvée.");
+      return;
+    }
+    let data;
+    try {
+      data = JSON.parse(raw);
+    } catch (e) {
+      alert("Erreur lors du chargement des données.");
+      console.error(e);
+      return;
+    }
+
+    const details = Array.isArray(data.details) ? data.details : [];
+    if (details.length === 0) {
+      alert("Aucune donnée détaillée disponible.");
+      return;
+    }
+
+    // Totaux par catégorie
+    const categorieTotals = {
+      "Transport": parseFloat(data.transport) || 0,
+      "Énergie": parseFloat(data.energie) || 0,
+      "Équipements": parseFloat(data.equipements) || 0,
+      "Total compensation": parseFloat(data.arbres) || 0
+    };
+
+    // Affichage résumé
+    const tbody = document.getElementById("summary-table");
+    tbody.innerHTML = "";
+    let total = 0, compensation = 0;
+
+    Object.entries(categorieTotals).forEach(([label, value]) => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td>${label}</td><td>${value.toFixed(2)} kgCO₂e</td>`;
+      tbody.appendChild(tr);
+
+      if (label === "Total compensation") {
+        compensation = value;
+      } else {
+        total += value;
+      }
+    });
+
+    // Correction : calcul de l'émission nette
+    let totalNet = total - compensation;
+    document.getElementById("emission-brute").innerHTML =
+      `<strong>${total.toFixed(2)} kgCO₂e</strong>`;
+    document.getElementById("emission-compensee").innerHTML =
+      `<strong>− ${compensation.toFixed(2)} kgCO₂e</strong>`;
+    document.getElementById("emission-nette").innerHTML =
+      `<strong>= ${totalNet.toFixed(2)} kgCO₂e</strong>`;
+
+    // Graphique
+    const baseColors = ["#004B87", "#006837", "#f0ad4e"];
+    const categorieColors = Object.keys(categorieTotals).map((_, i) => baseColors[i % baseColors.length]);
+
+    new Chart(document.getElementById("emissionChartDoughnut"), {
+      type: "doughnut",
+      data: {
+        labels: Object.keys(categorieTotals),
+        datasets: [{
+          data: Object.values(categorieTotals),
+          backgroundColor: categorieColors,
+          borderWidth: 1,
+          borderColor: "#fff"
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { position: 'bottom' },
+          tooltip: { enabled: true }
+        }
+      }
+    });
+
+    // Détails
+    const detailBody = document.getElementById("details-table");
+    detailBody.innerHTML = "";
+    details.forEach(item => {
+      const facteur = item.facteur !== undefined ? parseFloat(item.facteur) : null;
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${item.nom || "-"}</td>
+        <td>${item.categorie || "-"}</td>
+        <td>${item.scope || "-"}</td>
+        <td>${facteur !== null && !isNaN(facteur) ? facteur.toFixed(6) : "-"}</td>
+        <td>${item.unite || "-"}</td>
+      `;
+      detailBody.appendChild(tr);
+    });
+  }
+
+  function downloadPDF() {
+    const element = document.getElementById("report");
+    if (!element) {
+      alert("Le contenu du rapport est introuvable.");
+      return;
+    }
+    html2pdf().set({
+      margin: 0.5,
+      filename: "rapport_emissions_boad.pdf",
+      html2canvas: { scale: 2, logging: false },
+      jsPDF: { unit: "in", format: "a4", orientation: "portrait" }
+    }).from(element).save();
+  }
+
+  function clearAndQuit() {
+    if (confirm("Voulez-vous vraiment quitter et effacer toutes les données locales ?")) {
+      localStorage.clear();
+      window.location.href = "/";
+    }
+  }
+
+  window.onload = loadData;
+</script>
+
+
+<script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+</body>
+</html>

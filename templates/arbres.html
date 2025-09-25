@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Émissions CO₂ - Arbres</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <style>
+    /* Variables couleurs BOAD */
+    :root {
+      --boad-red: #a71930;
+      --boad-red-dark: #891625;
+      --white: #fff;
+      --boad-yellow: #FFCC00;
+      --boad-yellow-dark: #e6b800;
+    }
+
+    /* Style barre navigation - header */
+   header {
+  background-color: var(--boad-red);
+  height: 80px;
+  padding: 0 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  overflow: hidden;
+}
+
+
+  .header-left {
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+
+.header-left img {
+  height: 120px;
+  width: auto;
+  display: block;
+  object-fit: contain;
+}
+
+
+    .header-center {
+      flex-grow: 1;
+      min-width: 250px;
+      text-align: center;
+    }
+
+    .header-center h1 {
+      margin: 0;
+      font-weight: 700;
+      font-size: 1.75rem;
+      color: #fff;
+      user-select: none;
+    }
+
+    nav.header-nav {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    nav.header-nav a {
+      color: #fff;
+      text-decoration: none;
+      font-weight: 600;
+      padding: 0.6rem 1.2rem;
+      border-radius: 8px;
+      transition: background-color 0.3s ease, color 0.3s ease;
+      white-space: nowrap;
+      font-size: 1rem;
+    }
+
+    nav.header-nav a:hover,
+    nav.header-nav a:focus {
+      background-color: rgba(255, 255, 255, 0.3);
+      outline: none;
+      color: #ffebc2;
+    }
+
+    .quit-btn {
+      background-color: var(--boad-red-dark);
+      color: white;
+      padding: 0.6rem 1.2rem;
+      border: none;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .quit-btn:hover {
+      background-color: #70121d;
+    }
+
+    /* --- Garde les styles nav précédents désactivés --- */
+    nav, ul, li, a {
+      margin: 0; padding: 0; list-style: none; text-decoration: none;
+    }
+
+    nav {
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    /* Suppression des styles de l'ancienne nav (optionnel) */
+    .nav-container, .nav-logo, .nav-menu, .nav-toggle, .nav-toggle-label {
+      display: none !important;
+    }
+
+    /* Styles page Arbres (existants) */
+    body {
+      margin: 0; font-family: Arial, sans-serif; background: #fafafa;
+    }
+
+    .main-content {
+      max-width: 1100px;
+      margin: 2rem auto;
+      padding: 20px;
+      background: white;
+      box-shadow: 0 0 10px rgb(0 0 0 / 0.1);
+      border-radius: 8px;
+    }
+
+    h2 {
+      color: var(--boad-red);
+      margin-bottom: 20px;
+    }
+
+   .add-buttons {
+  margin: 10px 0 20px;
+  display: flex;
+  justify-content: center; /* Centrer horizontalement */
+}
+
+.add-buttons::before,
+.add-buttons::after {
+  content: "";
+  flex: 1; /* Occupe 1/3 chacun */
+}
+
+.add-buttons button {
+  flex: 1; /* Le bouton occupe aussi 1/3 */
+  max-width: 250px; /* Pour éviter qu'il devienne trop large sur grands écrans */
+  background-color: var(--boad-yellow);
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  color: #333;
+  transition: background-color 0.3s ease;
+}
+
+    .add-buttons button:hover {
+      background-color: var(--boad-yellow-dark);
+      color: #111;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    th, td {
+      padding: 12px 15px;
+      border: 1px solid #ddd;
+      text-align: left;
+      font-size: 14px;
+    }
+
+    th {
+      background-color: var(--boad-red);
+      color: white;
+      user-select: none;
+    }
+
+    tr.total-row td {
+      background-color: var(--boad-red);
+      color: var(--white);
+      font-weight: bolder;
+      font-size: 16px;
+    }
+
+    select, input[type="number"] {
+      width: 100%;
+      padding: 6px 8px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+      transition: border-color 0.3s ease;
+    }
+
+    select:focus, input[type="number"]:focus {
+      border-color: var(--boad-red);
+      outline: none;
+      box-shadow: 0 0 5px var(--boad-red);
+    }
+
+    .action-btn {
+      background: none;
+      border: none;
+      color: var(--boad-red);
+      font-size: 18px;
+      cursor: pointer;
+      transition: color 0.3s ease;
+    }
+
+    .action-btn:hover {
+      color: var(--boad-red-dark);
+    }
+
+    #treeDescription {
+      margin-top: 20px;
+      background: #fff3cc;
+      padding: 15px;
+      border-left: 6px solid var(--boad-yellow);
+      border-radius: 4px;
+      color: #5c3a00;
+      font-style: italic;
+      min-height: 50px;
+    }
+
+    .fixed-nav-buttons {
+      margin-top: 20px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .fixed-nav-buttons button {
+      background-color: var(--boad-yellow);
+      color: #333;
+      border: none;
+      border-radius: 6px;
+      padding: 12px 24px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      min-width: 160px;
+    }
+
+    .fixed-nav-buttons button:hover {
+      background-color: var(--boad-yellow-dark);
+      color: #111;
+    }
+
+    body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('{{ url_for("static", filename="logo-boad.webp") }}');
+    background-repeat: repeat;
+    background-size: 80px auto;
+    opacity: 0.08; /* très léger fond */
+    pointer-events: none;
+    z-index: -1;
+  }
+  </style>
+</head>
+<body>
+  <div class="layout">
+
+    <!-- Barre de navigation remplacée par header avec logo + titre + nav -->
+    <header>
+      <div class="header-left">
+    <img src="{{ url_for('static', filename='BOADCarbone.png') }}" alt="Logo BOAD" />
+  </div>
+      <div class="header-center">
+        <h1>Compensation - Absorption carbone</h1>
+      </div>
+      <nav class="header-nav">
+        <a href="{{ url_for('index') }}">Accueil</a>
+        <a href="{{ url_for('apropos') }}">À propos</a>
+        <a href="{{ url_for('contact') }}">Contacts</a>
+        <a href="{{ url_for('aide') }}">Aide</a>
+      </nav>
+    </header>
+
+    <div class="main-content">
+
+        <h2>Arbres - Absorption</h2>
+
+        <div class="add-buttons">
+          <button type="button" onclick="addTreeRow()">➕ Ajouter un arbre</button>
+        </div>
+
+        <table id="treeTable">
+          <thead>
+            <tr>
+              <th>Type d'arbre</th>
+              <th>Maturité</th>
+              <th>Quantité (nombre)</th>
+              <th>Absorption (KgCO₂e)</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="treeBody"></tbody>
+        </table>
+
+        <div id="treeDescription"></div>
+
+        <div class="fixed-nav-buttons">
+          <button type="button" onclick="precedent()">←Précédent</button>
+          <button type="button" onclick="suivant()">Consulter le rapport →</button>
+        </div>
+      </div>
+    </div>
+
+
+
+
+<script>
+  const arbresData = {{ arbres | tojson }};
+  let treeRows = [];
+
+  function afficherDescription(description) {
+    document.getElementById('treeDescription').textContent = description || '';
+  }
+
+  function getMaturitesDisponibles(arbreNom) {
+    const arbre = arbresData.find(a => a.nom === arbreNom);
+    return arbre ? Object.keys(arbre.maturites) : [];
+  }
+
+  function saveData() {
+    localStorage.setItem('treeRows', JSON.stringify(treeRows));
+    const emissionData = JSON.parse(localStorage.getItem("emissionData")) || {};
+    const total = treeRows.reduce((acc, r) => acc + (r.quantite || 0) * (r.facteur || 0), 0);
+    emissionData.arbres = total;
+    const arbresDetails = treeRows.map(row => ({
+      nom: row.arbre,
+      maturite: row.maturite,
+      facteur: row.facteur,
+      unite: row.unite,
+      categorie: "Arbres",
+      scope: "Scope 3"
+    }));
+    const detailsExistants = (emissionData.details || []).filter(d => d.categorie !== "Arbres");
+    emissionData.details = [...detailsExistants, ...arbresDetails];
+    localStorage.setItem("emissionData", JSON.stringify(emissionData));
+  }
+
+  function renderTable() {
+    const tbody = document.getElementById('treeBody');
+    tbody.innerHTML = '';
+    treeRows.forEach((row, index) => {
+      const tr = document.createElement('tr');
+
+      const tdArbre = document.createElement('td');
+      const selArbre = document.createElement('select');
+      selArbre.innerHTML = '<option value="">-- Choisir --</option>';
+      arbresData.forEach(a => {
+        const opt = document.createElement('option');
+        opt.value = a.nom;
+        opt.textContent = a.nom;
+        if (a.nom === row.arbre) opt.selected = true;
+        selArbre.appendChild(opt);
+      });
+      selArbre.onchange = e => {
+        row.arbre = e.target.value;
+        row.maturite = '';
+        row.quantite = 0;
+        row.facteur = 0;
+        row.unite = '';
+        afficherDescription('');
+        renderTable();
+        saveData();
+      };
+      tdArbre.appendChild(selArbre);
+      tr.appendChild(tdArbre);
+
+      const tdMat = document.createElement('td');
+      const selMat = document.createElement('select');
+      selMat.innerHTML = '<option value="">-- Choisir --</option>';
+      if (row.arbre) {
+        const mats = getMaturitesDisponibles(row.arbre);
+        mats.forEach(m => {
+          const opt = document.createElement('option');
+          opt.value = m;
+          opt.textContent = m.charAt(0).toUpperCase() + m.slice(1);
+          if (m === row.maturite) opt.selected = true;
+          selMat.appendChild(opt);
+        });
+      }
+      selMat.onchange = e => {
+        row.maturite = e.target.value;
+        if (row.arbre && row.maturite) {
+          const arbre = arbresData.find(a => a.nom === row.arbre);
+          if (arbre && arbre.maturites[row.maturite]) {
+            row.facteur = arbre.maturites[row.maturite].facteur;
+            row.unite = arbre.maturites[row.maturite].unite || 'U';
+            afficherDescription(arbre.maturites[row.maturite].description || '');
+          }
+        } else {
+          row.facteur = 0;
+          row.unite = '';
+          afficherDescription('');
+        }
+        row.quantite = 0;
+        renderTable();
+        saveData();
+      };
+      tdMat.appendChild(selMat);
+      tr.appendChild(tdMat);
+
+      const tdQte = document.createElement('td');
+      const inputQte = document.createElement('input');
+      inputQte.type = 'number';
+      inputQte.min = '0';
+      inputQte.value = row.quantite || 0;
+      inputQte.oninput = e => {
+        row.quantite = parseFloat(e.target.value) || 0;
+        renderTable();
+        saveData();
+      };
+      tdQte.appendChild(inputQte);
+      tr.appendChild(tdQte);
+
+      const tdEm = document.createElement('td');
+      const emissions = (row.quantite || 0) * (row.facteur || 0);
+      tdEm.textContent = emissions.toFixed(2);
+      tr.appendChild(tdEm);
+
+      const tdAct = document.createElement('td');
+      const btnSuppr = document.createElement('button');
+      btnSuppr.className = 'action-btn';
+      btnSuppr.textContent = '🗑️';
+      btnSuppr.onclick = () => {
+        treeRows.splice(index, 1);
+        afficherDescription('');
+        renderTable();
+        saveData();
+      };
+      tdAct.appendChild(btnSuppr);
+      tr.appendChild(tdAct);
+
+      tbody.appendChild(tr);
+    });
+
+    const total = treeRows.reduce((acc, r) => acc + (r.quantite || 0) * (r.facteur || 0), 0);
+    const trTot = document.createElement('tr');
+    trTot.className = 'total-row';
+    const tdT1 = document.createElement('td');
+    tdT1.colSpan = 3;
+    tdT1.textContent = 'Total';
+    const tdT2 = document.createElement('td');
+    tdT2.innerHTML = `<span>${total.toFixed(2)}</span> KgCO₂e`;
+    const tdT3 = document.createElement('td');
+    trTot.appendChild(tdT1);
+    trTot.appendChild(tdT2);
+    trTot.appendChild(tdT3);
+    tbody.appendChild(trTot);
+  }
+
+  function addTreeRow() {
+    treeRows.push({
+      arbre: '',
+      maturite: '',
+      quantite: 0,
+      facteur: 0,
+      unite: ''
+    });
+    afficherDescription('');
+    renderTable();
+    saveData();
+  }
+
+  function precedent() {
+    window.location.href = "{{ url_for('equipements') }}";
+  }
+
+  // Ne supprime PAS les données dans ce bouton
+  function suivant() {
+    window.location.href = "{{ url_for('resultat') }}";
+  }
+
+  // Supprime les données uniquement quand on clique sur Quitter
+  function handleQuit() {
+    localStorage.removeItem('treeRows');
+    localStorage.removeItem('emissionData');  // optionnel si tu veux tout nettoyer
+    window.location.href = "/";
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const saved = localStorage.getItem('treeRows');
+    if (saved) {
+      try {
+        treeRows = JSON.parse(saved);
+      } catch {
+        treeRows = [];
+      }
+    }
+    renderTable();
+  });
+</script>
+
+
+
+<!-- Google Translate Widget -->
+<div id="google_translate_element" style="position: fixed; top: 10px; right: 10px; z-index: 9999;"></div>
+
+<script type="text/javascript">
+  function googleTranslateElementInit() {
+    new google.translate.TranslateElement({
+      pageLanguage: 'fr',
+      includedLanguages: 'en,fr,pt,fon', // Tu peux ajouter d'autres langues ici
+      layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+      autoDisplay: false
+    }, 'google_translate_element');
+  }
+</script>
+
+<script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+
+</body>
+</html>

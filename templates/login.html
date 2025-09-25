@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Connexion Admin - BOAD</title>
+  <style>
+    body {
+      background: linear-gradient(135deg, #FFF8F0, #FFEFC7);
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .login-container {
+      background: linear-gradient(145deg, #ffffff, #fff8f0);
+      padding: 40px 30px;
+      border-radius: 12px;
+      box-shadow: 0 12px 25px rgba(0, 0, 0, 0.15);
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+      border-top: 6px solid #A71930; /* bande rouge BOAD */
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .login-container:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 20px 35px rgba(0, 0, 0, 0.25);
+    }
+
+    h2 {
+      color: #006940; /* vert BOAD */
+      margin-bottom: 30px;
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      margin: 12px 0;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: border 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    input:focus {
+      border-color: #A71930; /* rouge BOAD */
+      box-shadow: 0 0 8px rgba(167, 25, 48, 0.4);
+      outline: none;
+    }
+
+    button {
+      background-color: #A71930; /* rouge BOAD */
+      color: #FFD700; /* or BOAD */
+      border: none;
+      padding: 14px;
+      width: 100%;
+      border-radius: 8px;
+      margin-top: 20px;
+      font-weight: bold;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+    }
+
+    button:hover {
+      background-color: #006940; /* vert BOAD */
+      color: #FFD700;
+      transform: translateY(-2px) scale(1.02);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    }
+
+    .error {
+      color: red;
+      margin-bottom: 15px;
+      font-weight: bold;
+    }
+
+    @media (max-width: 450px) {
+      .login-container {
+        padding: 30px 20px;
+      }
+    }
+
+
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <h2>Connexion Admin</h2>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <p class="error">{{ message }}</p>
+      {% endfor %}
+    {% endwith %}
+
+    <form method="POST">
+      <input name="username" placeholder="Identifiant" required>
+      <input name="password" type="password" placeholder="Mot de passe" required>
+      <button type="submit">Se connecter</button>
+    </form>
+  </div>
+
+
+<!-- Google Translate Widget -->
+<div id="google_translate_element" style="position: fixed; top: 10px; right: 10px; z-index: 9999;"></div>
+
+<script type="text/javascript">
+  function googleTranslateElementInit() {
+    new google.translate.TranslateElement({
+      pageLanguage: 'fr',
+      includedLanguages: 'en,fr,pt,fon', // Tu peux ajouter d'autres langues ici
+      layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+      autoDisplay: false
+    }, 'google_translate_element');
+  }
+</script>
+
+<script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+</body>
+</html>

@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Déchets – Émissions de CO₂</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <style>
+    :root {
+      --boad-red: #a71930;
+      --boad-red-dark: #891625;
+      --white: #fff;
+      --boad-yellow: #FFCC00;
+      --boad-yellow-dark: #e6b800;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    .layout {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    nav {
+      width: 220px;
+      background-color: var(--boad-red);
+      color: var(--white);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .nav-top {
+      padding-top: 30px;
+    }
+
+    .logo-container {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .logo-container img {
+      max-height: 60px;
+    }
+
+    .menu-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 0 15px;
+    }
+
+    .menu-buttons a {
+      background-color: #c9a200; /* Or BOAD */
+      color: var(--white);
+      padding: 12px;
+      text-align: center;
+      text-decoration: none;
+      border-radius: 6px;
+      font-weight: bold;
+      transition: background 0.3s ease;
+    }
+
+    .menu-buttons a:hover {
+      background-color: #70121d;
+    }
+
+    .menu-buttons a.active {
+      background-color: #c9a200; /* Or BOAD */
+      font-weight: bolder;
+    }
+
+    .quit-container {
+      padding: 20px 15px;
+      background-color: #c9a200; /* Or BOAD */
+    }
+
+    .styled-button {
+      padding: 10px 16px;
+      background-color: var(--boad-red-dark);
+      color: white;
+      border: none;
+      border-radius: 5px;
+      width: 100%;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .styled-button:hover {
+      background-color: #70121d;
+    }
+
+    .main-content {
+      flex-grow: 1;
+      padding: 20px;
+      padding-bottom: 70px; /* Pour laisser la place aux boutons fixes */
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .total-row {
+      position: sticky;
+      bottom: 0;
+      background: #f8f8f8;
+      font-weight: bold;
+      border-top: 2px solid #000;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 8px;
+      border: 1px solid #ccc;
+      text-align: left;
+    }
+
+    select, input[type="number"] {
+      width: 100%;
+    }
+
+    .add-buttons {
+      margin: 10px 0;
+    }
+
+    /* Conteneur fixe des boutons navigation en bas */
+    .fixed-nav-buttons {
+      position: fixed;
+      bottom: 0;
+      left: 220px; /* largeur menu */
+      right: 0;
+      background: #fff;
+      padding: 10px 20px;
+      box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+      display: flex;
+      justify-content: space-between;
+      z-index: 1000;
+    }
+
+    .fixed-nav-buttons button {
+      background-color: #c9a200; /* Or BOAD */
+      color: #333;
+      border: none;
+      border-radius: 6px;
+      padding: 12px 24px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      width: 140px;
+    }
+
+    .fixed-nav-buttons button:hover {
+      background-color: var(--boad-yellow-dark);
+    }
+
+    /* Style bouton suppression */
+    .delete-btn {
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      font-size: 18px;
+      line-height: 1;
+      padding: 0;
+      color: #a71930;
+      transition: color 0.3s ease;
+    }
+    .delete-btn:hover {
+      color: #70121d;
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <nav>
+      <div class="nav-top">
+        <div class="logo-container">
+          <img src="{{ url_for('static', filename='logo-boad.webp') }}" alt="Logo BOAD">
+        </div>
+        <div class="menu-buttons">
+          <a href="/" >Accueil</a>
+          <a href="/transport" >Transport</a>
+          <a href="/energie" >Énergie</a>
+          <a href="/equipements" >Équipements</a>
+          <a href="/dechets" class="active">Déchets</a>
+          <a href="/resultat" >Résultats</a>
+        </div>
+      </div>
+      <div class="quit-container">
+        <button onclick="clearDataAndQuit()" class="styled-button">Quitter</button>
+      </div>
+    </nav>
+
+    <div class="main-content">
+      <div class="container">
+        <h2>Déchets – Émissions de CO₂</h2>
+
+        <div class="add-buttons">
+          <button onclick="addDechetRow()">➕ Ajouter un déchet</button>
+        </div>
+
+        <table id="dechetTable" aria-label="Tableau des déchets et émissions">
+          <thead>
+            <tr>
+              <th>Catégorie</th>
+              <th>Type de déchet</th>
+              <th>Quantité</th>
+              <th>Émissions (kg CO₂)</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="dechetBody">
+            <tr class="total-row"><td colspan="4">Total</td><td><span id="total-dechets">0.00</span> kg CO₂</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Boutons Précédent / Suivant fixes en bas -->
+  <div class="fixed-nav-buttons">
+    <button type="button" id="prev-step">← Précédent</button>
+    <button type="button" id="next-step">Étape suivante →</button>
+  </div>
+
+  <script>
+    // Données déchets fournies par le backend Flask
+    const dechets = {{ dechets | tojson | safe }};
+
+    function addDechetRow(savedData = null) {
+      const tbody = document.getElementById("dechetBody");
+      const row = document.createElement("tr");
+      row.className = "row-dechet";
+
+      // Catégorie
+      const tdCategorie = document.createElement("td");
+      const selectCategorie = document.createElement("select");
+      selectCategorie.innerHTML = `<option value="">-- Choisir --</option>`;
+      Object.keys(dechets).forEach(cat => {
+        const opt = document.createElement("option");
+        opt.value = cat;
+        opt.textContent = cat.charAt(0).toUpperCase() + cat.slice(1).replaceAll("_", " ");
+        selectCategorie.appendChild(opt);
+      });
+      tdCategorie.appendChild(selectCategorie);
+      row.appendChild(tdCategorie);
+
+      // Type de déchet
+      const tdType = document.createElement("td");
+      const selectType = document.createElement("select");
+      selectType.innerHTML = `<option value="">-- Choisir un type --</option>`;
+      tdType.appendChild(selectType);
+      row.appendChild(tdType);
+
+      // Quantité
+      const tdQuantite = document.createElement("td");
+      const inputQuantite = document.createElement("input");
+      inputQuantite.type = "number";
+      inputQuantite.min = 0;
+      inputQuantite.step = 1;
+      tdQuantite.appendChild(inputQuantite);
+      row.appendChild(tdQuantite);
+
+      // Émissions
+      const tdResult = document.createElement("td");
+      const spanResult = document.createElement("span");
+      spanResult.className = "emission-result";
+      spanResult.textContent = "0.00";
+      tdResult.appendChild(spanResult);
+      row.appendChild(tdResult);
+
+      // Action
+      const tdAction = document.createElement("td");
+      const deleteBtn = document.createElement("button");
+      deleteBtn.textContent = "🗑️";
+      deleteBtn.title = "Supprimer cette ligne";
+      deleteBtn.className = "delete-btn";
+      deleteBtn.addEventListener("click", () => {
+        row.remove();
+        updateTotalDechet();
+        saveDechetEmission();
+      });
+      tdAction.appendChild(deleteBtn);
+      row.appendChild(tdAction);
+
+      // Événements
+      selectCategorie.addEventListener("change", () => {
+        const cat = selectCategorie.value;
+        selectType.innerHTML = `<option value="">-- Choisir un type --</option>`;
+        if (dechets[cat]) {
+          dechets[cat].forEach(item => {
+            const opt = document.createElement("option");
+            opt.value = item.nom;
+            opt.dataset.factor = item.facteur;
+            opt.textContent = `${item.nom} (${item.facteur} kgCO₂/unité)`;
+            selectType.appendChild(opt);
+          });
+        }
+        calculateDechetEmission(row);
+      });
+
+      selectType.addEventListener("change", () => calculateDechetEmission(row));
+      inputQuantite.addEventListener("input", () => {
+        if (inputQuantite.value < 0) inputQuantite.value = 0;
+        calculateDechetEmission(row);
+      });
+
+      // Restauration données sauvegardées
+      if (savedData) {
+        selectCategorie.value = savedData.categorie;
+        selectCategorie.dispatchEvent(new Event("change"));
+        setTimeout(() => {
+          selectType.value = savedData.type;
+          selectType.dispatchEvent(new Event("change"));
+          inputQuantite.value = savedData.quantite;
+          inputQuantite.dispatchEvent(new Event("input"));
+        }, 50);
+      }
+
+      const totalRow = document.querySelector(".total-row");
+      tbody.insertBefore(row, totalRow);
+    }
+
+    function calculateDechetEmission(row) {
+      const selectType = row.querySelector("td:nth-child(2) select");
+      const inputQuantite = row.querySelector("td:nth-child(3) input");
+      const output = row.querySelector(".emission-result");
+
+      const facteur = parseFloat(selectType?.selectedOptions[0]?.dataset?.factor);
+      const quantite = parseFloat(inputQuantite?.value);
+
+      if (!isNaN(facteur) && !isNaN(quantite)) {
+        const emission = facteur * quantite;
+        output.textContent = emission.toFixed(2);
+      } else {
+        output.textContent = "0.00";
+      }
+
+      updateTotalDechet();
+    }
+
+    function updateTotalDechet() {
+      let total = 0;
+      document.querySelectorAll(".emission-result").forEach(cell => {
+        total += parseFloat(cell.textContent);
+      });
+      document.getElementById("total-dechets").textContent = total.toFixed(2);
+    }
+
+    function saveDechetEmission() {
+      const data = JSON.parse(localStorage.getItem("emissionData") || "{}");
+      const rows = document.querySelectorAll(".row-dechet");
+      const rowsData = [];
+
+      rows.forEach(row => {
+        const cat = row.querySelector("td:nth-child(1) select")?.value || "";
+        const type = row.querySelector("td:nth-child(2) select")?.value || "";
+        const quantite = row.querySelector("td:nth-child(3) input")?.value || 0;
+        rowsData.push({ categorie: cat, type: type, quantite: parseFloat(quantite) });
+      });
+
+      const total = parseFloat(document.getElementById("total-dechets").textContent) || 0;
+      data.dechets = total;
+      data.dechetRows = rowsData;
+      localStorage.setItem("emissionData", JSON.stringify(data));
+    }
+
+    function clearDataAndQuit() {
+      localStorage.clear();
+      window.location.href = "/";
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      const data = JSON.parse(localStorage.getItem("emissionData") || "{}");
+      if (data.dechetRows && Array.isArray(data.dechetRows)) {
+        data.dechetRows.forEach(rowData => addDechetRow(rowData));
+      }
+    });
+
+    document.getElementById("next-step").addEventListener("click", function () {
+      saveDechetEmission();
+      window.location.href = "/resultat";
+    });
+
+    document.getElementById("prev-step").addEventListener("click", function () {
+      saveDechetEmission();
+      window.location.href = "/equipements";
+    });
+  </script>
+</body>
+</html>

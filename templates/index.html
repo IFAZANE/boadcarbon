@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>BOAD - Outil de Calcul Carbone</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 0;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    background: #fdfcf9;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  /* Fond animé semi-transparent */
+  body::before {
+    content: "";
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: url("{{ url_for('static', filename='emission11.jpg') }}") center/cover no-repeat;
+    opacity: 0.2;
+    z-index: -1;
+    animation: moveBackground 20s linear infinite;
+  }
+
+  @keyframes moveBackground {
+    0% { transform: scale(1) translate(0,0); }
+    50% { transform: scale(1.05) translate(-20px,-20px); }
+    100% { transform: scale(1) translate(0,0); }
+  }
+
+header.main-header {
+  background-color: #a71930;
+  height: 80px; /* définit une hauteur fixe */
+  padding: 0 2rem; /* enlève le padding vertical */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  transition: background 0.3s;
+  overflow: hidden; /* important pour éviter les débordements du logo */
+}
+
+
+  .header-left img {
+  height: 120px; /* ou plus si souhaité */
+  width: auto;
+  display: block;
+  object-fit: contain;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+
+  .header-center h1 { color: #fff; font-size: 1.75rem; text-align: center; margin: 0; font-weight: 700; }
+  .gold-initial { color: #FFD700; font-weight: 700; font-size: 2.5rem; }
+
+  nav.header-nav { display: flex; gap: 1rem; flex-wrap: wrap; }
+  nav.header-nav a {
+    color: #fff; text-decoration: none; font-weight: 600;
+    padding: 0.5rem 1rem; border-radius: 6px;
+    transition: all 0.3s ease;
+  }
+  nav.header-nav a:hover { background: rgba(255,255,255,0.25); color: #ffebc2; }
+
+  main {
+    max-width: 1000px;
+    margin: 3rem auto;
+    padding: 0 1rem;
+    flex-grow: 1;
+  }
+
+  section {
+    margin-bottom: 3rem;
+    opacity: 0;
+    transform: translateY(30px);
+    transition: all 0.8s ease-out;
+  }
+  section.show { opacity: 1; transform: translateY(0); }
+
+  h2 { color: #a00000; font-size: 1.8rem; margin-bottom: 1rem; }
+  h3 { color: #006400; font-size: 1.3rem; margin-bottom: 0.7rem; }
+
+  .description-outil { font-size: 1.05rem; line-height: 1.55; color: #444; }
+  .description-outil img.logo-left { float: left; width: 300px; max-width: 40%; margin-right: 2rem; border-radius: 12px; box-shadow: 0 6px 18px rgba(0,0,0,0.15); }
+
+  .statistiques-wow {
+    display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap; margin-top: 2rem;
+  }
+  .stat-box {
+    background: #fff; border-left: 6px solid #a00000; border-radius: 14px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+    padding: 1.4rem 1.6rem; width: 220px; text-align: center;
+    opacity: 0.35; transition: all 0.4s ease;
+  }
+  .stat-box.visible { opacity: 1; color: #006400; }
+
+  .stat-value { font-size: 2rem; font-weight: 800; margin-bottom: 0.3rem; }
+  .stat-label { font-size: 1rem; font-weight: 700; text-transform: uppercase; }
+
+  .carbon-eval-link { text-align: center; margin-top: 3rem; }
+  .carbon-eval-link a {
+    background: linear-gradient(135deg, #a00000, #006400); color: #fff; font-weight: 700;
+    padding: 1rem 3rem; border-radius: 40px; text-decoration: none;
+    box-shadow: 0 6px 16px rgba(160,0,0,0.5);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    display: inline-block;
+  }
+  .carbon-eval-link a:hover { transform: scale(1.08); box-shadow: 0 10px 24px rgba(160,0,0,0.7); }
+
+  .confidentialite-text { max-width: 750px; margin: 2rem auto 0; font-size: 0.9rem; color: #555; text-align: center; line-height: 1.4; }
+
+  footer { background: #c9a200; color: white; font-weight: 700; text-align: center; padding: 1rem; font-size: 0.9rem; margin-top: auto; }
+</style>
+</head>
+
+
+<body>
+
+<header class="main-header">
+  <div class="header-left">
+    <img src="{{ url_for('static', filename='BOADCarbone.png') }}" alt="Logo BOAD" />
+  </div>
+  <div class="header-center">
+<h1>
+      Evaluation Carbone
+    </h1>
+  </div>
+  <nav class="header-nav">
+    <a href="{{ url_for('apropos') }}">À propos</a>
+    <a href="{{ url_for('contact') }}">Contacts</a>
+    <a href="{{url_for('inscriptionclient')}}">Évaluer</a>
+    <a href="{{ url_for('aide') }}">Aide</a>
+  </nav>
+</header>
+
+<main>
+  <section class="description-outil">
+    <h2>BOADCarbone est un outil d'évaluation de l'empreinte carbone</h2>
+    <p><strong>Dans un souci de suivi environnemental et de transparence, la Banque Ouest Africaine de Développement (BOAD) propose un outil d’évaluation carbone conçu pour être à la fois fiable et simple d’utilisation.</strong></p>
+    <p><strong>Cet outil permet d’évaluer rigoureusement les émissions de gaz à effet de serre (GES) générées par les projets, selon le Greenhouse Gas Protocol (GHG Protocol). Il couvre les scopes 1, 2 et 3.</strong></p>
+  </section>
+
+  {% if stat %}
+  <section class="statistiques-wow">
+    <div class="stat-box visible">
+      <div class="stat-value">{{ stat[0] }}</div>
+      <div class="stat-label">Projets financés</div>
+    </div>
+    <div class="stat-box visible">
+      <div class="stat-value">{{ stat[1] }} tonnes</div>
+      <div class="stat-label">CO₂ réduit</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-value">{{ stat[2] }} €</div>
+      <div class="stat-label">Gains financiers</div>
+    </div>
+  </section>
+  {% endif %}
+
+  <section class="confidentialite-text"></section>
+
+<!--  <div class="carbon-eval-link">-->
+<!--    <a href="{{ url_for('inscriptionclient') }}">Évaluer votre projet</a>-->
+<!--  </div>-->
+</main>
+
+<footer>© 2025 BOAD - Banque Ouest Africaine de Développement. Tous droits réservés.</footer>
+
+<script>
+  // Animation au scroll des sections
+  const sections = document.querySelectorAll('section');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if(entry.isIntersecting) entry.target.classList.add('show');
+    });
+  }, { threshold: 0.2 });
+  sections.forEach(sec => observer.observe(sec));
+
+  // Statistiques alternantes
+  document.addEventListener('DOMContentLoaded', () => {
+    const stats = document.querySelectorAll('.statistiques-wow .stat-box');
+    let idx = 0;
+    function showTwo() {
+      stats.forEach((el,i)=>el.classList.remove('visible'));
+      stats[idx].classList.add('visible');
+      stats[(idx+1)%stats.length].classList.add('visible');
+      idx = (idx+1)%stats.length;
+    }
+    if(stats.length>2){
+      setInterval(showTwo, 3000);
+    }
+  });
+</script>
+
+
+
+<!-- Google Translate Widget -->
+<div id="google_translate_element" style="position: fixed; top: 10px; right: 10px; z-index: 9999;"></div>
+
+<script type="text/javascript">
+  function googleTranslateElementInit() {
+    new google.translate.TranslateElement({
+      pageLanguage: 'fr',
+      includedLanguages: 'en,fr,pt,fon', // Tu peux ajouter d'autres langues ici
+      layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+      autoDisplay: false
+    }, 'google_translate_element');
+  }
+</script>
+
+
+
+
+
+<script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+</body>
+</html>

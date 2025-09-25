@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Interface Admin - BOAD</title>
+  <style>
+    body {
+      background: linear-gradient(135deg, #FFF8F0, #FFEFC7); /* fond plus dynamique */
+      font-family: Arial, sans-serif;
+      color: #333;
+      padding: 40px;
+      min-height: 100vh;
+    }
+
+    .admin-container {
+      max-width: 600px;
+      margin: auto;
+      background: linear-gradient(145deg, #ffffff, #fff8f0);
+      padding: 30px 40px;
+      border-radius: 12px;
+      box-shadow: 0 12px 25px rgba(0, 0, 0, 0.15);
+      border-top: 6px solid #A71930; /* rouge BOAD */
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .admin-container:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 20px 35px rgba(0, 0, 0, 0.2);
+    }
+
+    h2 {
+      text-align: center;
+      color: #006940; /* vert BOAD */
+      margin-bottom: 25px;
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+
+    label {
+      display: block;
+      margin: 15px 0 5px;
+      font-weight: bold;
+      color: #A71930; /* rouge BOAD */
+      font-size: 1.05rem;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: border 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    input:focus {
+      border-color: #006940; /* vert BOAD */
+      box-shadow: 0 0 8px rgba(0, 105, 64, 0.4);
+      outline: none;
+    }
+
+    button {
+      background-color: #A71930; /* rouge BOAD */
+      color: #FFD700; /* or BOAD */
+      border: none;
+      padding: 14px;
+      width: 100%;
+      border-radius: 8px;
+      margin-top: 20px;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 1.1rem;
+      transition: all 0.3s ease;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+    }
+
+    button:hover {
+      background-color: #006940; /* vert BOAD */
+      color: #FFD700;
+      transform: translateY(-2px) scale(1.02);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    }
+
+    .logout-link {
+      display: block;
+      text-align: center;
+      margin-top: 20px;
+      color: #A71930; /* rouge BOAD */
+      text-decoration: none;
+      font-weight: bold;
+      transition: all 0.3s ease;
+    }
+
+    .logout-link:hover {
+      color: #006940; /* vert BOAD */
+      text-decoration: underline;
+      transform: scale(1.05);
+    }
+
+    .success {
+      color: #006940; /* vert BOAD */
+      text-align: center;
+      font-weight: bold;
+      margin-bottom: 15px;
+      animation: fadeIn 0.8s ease forwards;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="admin-container">
+    <h2>Interface Administrateur</h2>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <p class="success">{{ message }}</p>
+      {% endfor %}
+    {% endwith %}
+
+    <form method="POST">
+      <label for="nb_projets">Nombre de projets financés</label>
+      <input type="number" name="nb_projets" required>
+
+      <label for="co2_reduit">CO₂ réduit (en tonnes)</label>
+      <input type="number" step="0.01" name="co2_reduit" required>
+
+      <label for="gain_financier">Gain financier (€)</label>
+      <input type="number" step="0.01" name="gain_financier" required>
+
+      <button type="submit">Enregistrer les données</button>
+    </form>
+
+    <a href="{{ url_for('logout') }}" class="logout-link">Se déconnecter</a>
+  </div>
+
+
+<!-- Google Translate Widget -->
+<div id="google_translate_element" style="position: fixed; top: 10px; right: 10px; z-index: 9999;"></div>
+
+<script type="text/javascript">
+  function googleTranslateElementInit() {
+    new google.translate.TranslateElement({
+      pageLanguage: 'fr',
+      includedLanguages: 'en,fr,pt,fon', // Tu peux ajouter d'autres langues ici
+      layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+      autoDisplay: false
+    }, 'google_translate_element');
+  }
+</script>
+
+<script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+</body>
+</html>

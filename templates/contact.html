@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Contact – BOAD</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+    html {
+      margin: 0;
+      padding: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+<!--      background-color: #fdfcf9;-->
+      color: #222;
+      font-size: 1rem;
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      scroll-behavior: smooth;
+    }
+ body {margin: 0;
+      padding: 0}
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* HEADER aligné sur le style de l'autre page */
+   header {
+  background-color: #a71930;
+  height: 80px;
+  padding: 0 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  overflow: hidden;
+}
+
+
+  .header-left img {
+  height: 120px;
+  width: auto;
+  display: block;
+  object-fit: contain;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+
+
+
+    .header-center {
+      flex-grow: 1;
+      min-width: 250px;
+      text-align: center;
+    }
+    .header-center h1 {
+      margin: 0;
+      font-weight: 700;
+      font-size: 1.75rem;
+      color: #fff;
+      user-select: none;
+    }
+    nav.header-nav {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    nav.header-nav a {
+      color: #fff;
+      text-decoration: none;
+      font-weight: 600;
+      padding: 0.6rem 1.2rem;
+      border-radius: 8px;
+      transition: background-color 0.3s ease, color 0.3s ease;
+      white-space: nowrap;
+      font-size: 1rem;
+    }
+    nav.header-nav a:hover,
+    nav.header-nav a:focus {
+      background-color: rgba(255, 255, 255, 0.3);
+      outline: none;
+      color: #ffebc2;
+    }
+
+    /* CONTENU */
+    main {
+      max-width: 1080px;
+      margin: 2rem auto;
+      padding: 0 1.5rem;
+      animation: fadeIn 1s ease-out forwards;
+      flex-grow: 1;
+    }
+    .contact {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      align-items: start;
+    }
+    .contact h2 {
+      grid-column: 1 / -1;
+      color: #a00000;
+      text-align: center;
+      font-size: 1.8rem;
+      margin-bottom: 2rem;
+    }
+    .contact-infos, form {
+      background: #f9f9f9;
+      padding: 1.5rem;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    }
+    .contact-infos strong {
+      color: #a00000;
+    }
+    .contact-infos a {
+      color: #a00000;
+      font-weight: bold;
+      text-decoration: none;
+    }
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    label {
+      font-weight: bold;
+    }
+    input, textarea {
+      padding: 0.75rem;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 1rem;
+    }
+    textarea {
+      resize: vertical;
+      min-height: 120px;
+    }
+    button {
+      background-color: #800000;
+      color: white;
+      padding: 0.75rem;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #a00000;
+    }
+    .map-container {
+      margin-top: 2.5rem;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      grid-column: 1 / -1;
+    }
+    .map-container iframe {
+      width: 100%;
+      height: 400px;
+      border: 0;
+    }
+    footer {
+      background-color: #c9a200;
+      color: white;
+      font-weight: 700;
+      font-size: 1rem;
+      padding: 1.25rem 1rem;
+      text-align: center;
+      margin-top: auto;
+      letter-spacing: 0.04em;
+    }
+    @media (max-width: 768px) {
+      .contact {
+        grid-template-columns: 1fr;
+      }
+      header {
+        justify-content: center;
+        text-align: center;
+      }
+      nav.header-nav {
+        justify-content: center;
+        width: 100%;
+        gap: 0.8rem;
+      }
+    }
+
+    .gold-initial {
+  color: #FFD700;        /* jaune or BOAD */
+  font-size: 2.5rem;     /* taille plus grande que le reste du texte */
+  font-weight: 700;      /* gras pour mieux ressortir */
+}
+
+
+ body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('{{ url_for("static", filename="logo-boad.webp") }}');
+    background-repeat: repeat;
+    background-size: 80px auto;
+    opacity: 0.08; /* très léger fond */
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  </style>
+</head>
+<body>
+
+<header>
+ <div class="header-left">
+    <img src="{{ url_for('static', filename='BOADCarbone.png') }}" alt="Logo BOAD" />
+  </div>
+  <div class="header-center">
+    <h1>
+      Evaluation Carbone
+    </h1>
+
+  </div>
+  <nav class="header-nav" role="navigation" aria-label="Menu principal">
+    <a href="{{ url_for('index') }}">Accueil</a>
+    <a href="{{ url_for('apropos') }}">À propos</a>
+    <a href="{{url_for('inscriptionclient')}}">Évaluer</a>
+    <a href="{{ url_for('aide') }}">Aide</a>
+  </nav>
+</header>
+
+<main role="main">
+  <section class="contact" aria-labelledby="contact-title">
+    <h2 id="contact-title">Contactez-nous</h2>
+    <div class="contact-infos">
+      <p><strong>Adresse :</strong><br>BOAD - Banque Ouest Africaine de Développement<br>68, Avenue de la Libération</p>
+      <p><strong>Email :</strong> <a href="mailto:boadsiege@boad.org">boadsiege@boad.org</a></p>
+      <p><strong>Téléphones :</strong><br>+228 22 21 59 06<br>+228 22 21 42 44<br>+228 22 21 01 13</p>
+    </div>
+    <form action="{{ url_for('envoyer_contact') }}" method="post">
+      <label for="nom">Nom</label>
+      <input type="text" id="nom" name="nom" required>
+      <label for="email">Email</label>
+      <input type="email" id="email" name="email" required>
+      <label for="message">Message</label>
+      <textarea id="message" name="message" required></textarea>
+      <button type="submit">Envoyer</button>
+    </form>
+    <div class="map-container">
+  <iframe
+    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d31765.25365938274!2d1.192272!3d6.129778!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x1023e1b2da9380b5%3A0x92db5459f0d7e5d0!2sBanque%20Ouest%20Africaine%20de%20D%C3%A9veloppement%20(BOAD)!5e0!3m2!1sfr!2stg!4v1691504936815!5m2!1sfr!2stg"
+    width="600"
+    height="450"
+    style="border:0;"
+    allowfullscreen=""
+    loading="lazy"
+    referrerpolicy="no-referrer-when-downgrade">
+  </iframe>
+</div>
+  </section>
+</main>
+
+<footer role="contentinfo">
+  © {{ current_year }} BOAD - Banque Ouest Africaine de Développement. Tous droits réservés.
+</footer>
+
+
+<!-- Google Translate Widget -->
+<div id="google_translate_element" style="position: fixed; top: 10px; right: 10px; z-index: 9999;"></div>
+
+<script type="text/javascript">
+  function googleTranslateElementInit() {
+    new google.translate.TranslateElement({
+      pageLanguage: 'fr',
+      includedLanguages: 'en,fr,pt,fon', // Tu peux ajouter d'autres langues ici
+      layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+      autoDisplay: false
+    }, 'google_translate_element');
+  }
+</script>
+
+<script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+</body>
+</html>

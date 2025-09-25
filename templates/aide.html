@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BOAD - Outil de Calcul Carbone</title>
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+    html {
+      margin: 0;
+      padding: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #fdfcf9;
+      color: #222;
+      font-size: 1rem;
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      scroll-behavior: smooth;
+    }
+
+    body {margin: 0;
+      padding: 0}
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* HEADER RESTRUCTURE */
+header {
+  background-color: #a71930;
+  height: 80px;          /* fixe la hauteur à 80px */
+  padding: 0 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  overflow: hidden;      /* pour que rien ne dépasse */
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  flex-shrink: 0;
+}
+
+.header-left img {
+  height: 80px;      /* hauteur max égale à la hauteur du header */
+  width: auto;
+  display: block;
+  object-fit: contain;
+  transform: scale(1.7);  /* augmente la taille visuelle de 20% sans changer la taille "officielle" */
+  transform-origin: left center; /* pour garder le logo aligné à gauche */
+}
+
+
+
+
+    .header-center {
+      flex-grow: 1;
+      min-width: 250px;
+      text-align: center;
+    }
+
+    .header-center h1 {
+      margin: 0;
+      font-weight: 700;
+      font-size: 1.75rem;
+      color: #fff;
+      user-select: none;
+    }
+
+    nav.header-nav {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    nav.header-nav a {
+      color: #fff;
+      text-decoration: none;
+      font-weight: 600;
+      padding: 0.6rem 1.2rem;
+      border-radius: 8px;
+      transition: background-color 0.3s ease, color 0.3s ease;
+      white-space: nowrap;
+      font-size: 1rem;
+    }
+
+    nav.header-nav a:hover,
+    nav.header-nav a:focus {
+      background-color: rgba(255, 255, 255, 0.3);
+      outline: none;
+      color: #ffebc2;
+    }
+
+    main {
+      max-width: 1200px;
+      margin: 3rem auto 4rem;
+      padding: 0 1.5rem;
+      flex-grow: 1;
+      animation: fadeIn 1s ease-out forwards;
+    }
+
+    section {
+      margin-bottom: 4rem;
+    }
+
+    h2 {
+      color: #a00000;
+      font-size: 2.1rem;
+      margin-bottom: 1.5rem;
+      font-weight: 800;
+      border-bottom: 4px solid #a00000;
+      padding-bottom: 0.4rem;
+      letter-spacing: 0.04em;
+    }
+
+    h3 {
+      color: #006400;
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+      font-weight: 700;
+    }
+
+    /* Description outil avec image agrandie et texte fluide */
+    .description-outil {
+      display: flex;
+      gap: 3rem;
+      align-items: stretch;
+      color: #444;
+      font-size: 1.15rem;
+      line-height: 1.75;
+    }
+
+    .description-outil img.logo-left {
+      width: 480px;
+      max-width: 100%;
+      border-radius: 14px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.18);
+      flex-shrink: 0;
+      object-fit: cover;
+      transition: transform 0.4s ease;
+      height: auto;
+      align-self: stretch;
+    }
+    .description-outil img.logo-left:hover {
+      transform: scale(1.03);
+      box-shadow: 0 12px 38px rgba(0,0,0,0.25);
+    }
+
+    .description-text {
+      max-width: 600px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .description-text p,
+    .description-text ul,
+    .description-text h2,
+    .description-text h3 {
+      margin-bottom: 1.5rem;
+    }
+
+    .intro-text {
+      font-style: italic;
+      color: #555;
+      margin-bottom: 2.2rem;
+      font-size: 1.1rem;
+      font-weight: 600;
+      border-left: 4px solid #a00000;
+      padding-left: 1rem;
+    }
+
+    ul {
+      padding-left: 1.8rem;
+      list-style-type: square;
+      color: #333;
+      font-weight: 600;
+      line-height: 1.6;
+      margin-bottom: 0;
+    }
+    ul li {
+      margin-bottom: 0.9rem;
+      font-weight: 500;
+    }
+
+    /* Scopes - cartes modernes et aérées */
+    .scopes-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2.5rem;
+      justify-content: center;
+    }
+
+    .scope-card {
+      background: #fff8f0;
+      border-left: 10px solid #006400;
+      border-radius: 16px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+      padding: 2.4rem 2rem 2.6rem;
+      color: #333;
+      flex: 1 1 320px;
+      max-width: 360px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      transition: box-shadow 0.35s ease, transform 0.3s ease;
+      cursor: default;
+    }
+
+    .scope-card:hover,
+    .scope-card:focus-within {
+      box-shadow: 0 15px 45px rgba(0,0,0,0.18);
+      transform: translateY(-8px);
+      outline: none;
+    }
+
+    .scope-icon {
+      width: 80px;
+      height: 80px;
+      fill: #a71930;
+      margin-bottom: 1.4rem;
+      flex-shrink: 0;
+    }
+
+    .scope-description {
+      font-size: 1.1rem;
+      line-height: 1.55;
+      color: #444;
+      margin-top: 0;
+      font-weight: 500;
+      min-height: 110px;
+    }
+
+    /* Bouton d’évaluation */
+    .carbon-eval-link {
+      text-align: center;
+      margin-top: 3rem;
+    }
+
+    .carbon-eval-link a {
+      background: linear-gradient(135deg, #a00000, #006400);
+      color: #fff;
+      font-weight: 700;
+      font-size: 1.4rem;
+      padding: 1.2rem 4rem;
+      border-radius: 50px;
+      text-decoration: none;
+      box-shadow: 0 9px 26px rgba(160,0,0,0.65);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      user-select: none;
+      display: inline-block;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .carbon-eval-link a:hover,
+    .carbon-eval-link a:focus {
+      transform: scale(1.1);
+      box-shadow: 0 18px 45px rgba(160,0,0,0.9);
+      outline: none;
+    }
+
+    /* Texte de confidentialité */
+    .confidentialite-text {
+      max-width: 780px;
+      margin: 3rem auto 0;
+      font-size: 1rem;
+      color: #555;
+      text-align: center;
+      line-height: 1.6;
+      font-style: italic;
+      letter-spacing: 0.03em;
+    }
+
+    footer {
+      background-color: #c9a200;
+      color: white;
+      font-weight: 700;
+      text-align: center;
+      padding: 1.2rem 1rem;
+      font-size: 1rem;
+      margin-top: auto;
+      user-select: none;
+      letter-spacing: 0.04em;
+    }
+
+    /* Responsive */
+    @media (max-width: 1100px) {
+      .description-outil {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+      }
+      .description-outil img.logo-left {
+        width: 90vw;
+        max-width: 480px;
+        margin-bottom: 2rem;
+        align-self: center;
+      }
+      .description-text {
+        max-width: 100%;
+        justify-content: normal;
+      }
+      .scopes-container {
+        justify-content: center;
+      }
+    }
+
+    @media (max-width: 600px) {
+      header {
+        justify-content: center;
+        text-align: center;
+        gap: 1rem;
+      }
+      .header-center {
+        flex-grow: 0;
+        min-width: auto;
+      }
+      nav.header-nav {
+        justify-content: center;
+        width: 100%;
+        gap: 0.8rem;
+      }
+      main {
+        margin: 2rem 1rem 3rem;
+        padding: 0;
+      }
+      .carbon-eval-link a {
+        padding: 1rem 2.5rem;
+        font-size: 1.1rem;
+      }
+    }
+
+    .gold-initial {
+  color: #FFD700;        /* jaune or BOAD */
+  font-size: 2.5rem;     /* taille plus grande que le reste du texte */
+  font-weight: 700;      /* gras pour mieux ressortir */
+}
+
+
+    /* Header */
+header {
+  background-color: #a71930;
+  padding: 0.8rem 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  min-height: 80px;
+  overflow: visible;
+}
+
+/* Logo à gauche */
+.header-left {
+  flex-shrink: 0;
+}
+.header-left img {
+  height: 70px;
+  max-height: 80px;
+  width: auto;
+  display: block;
+  object-fit: contain;
+}
+
+/* Titre centré */
+.header-center {
+  flex-grow: 1;
+  min-width: 220px;
+  text-align: center;
+}
+.header-center h1 {
+  margin: 0;
+  font-weight: 800;
+  font-size: 1.9rem;
+  color: #fff;
+  user-select: none;
+  line-height: 1.2;
+  letter-spacing: 0.02em;
+}
+
+/* Navigation à droite */
+nav.header-nav {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+nav.header-nav a {
+  color: #fff;
+  text-decoration: none;
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  white-space: nowrap;
+  font-size: 1rem;
+}
+nav.header-nav a:hover,
+nav.header-nav a:focus {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: #ffebc2;
+  outline: none;
+}
+
+       body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('{{ url_for("static", filename="logo-boad.webp") }}');
+    background-repeat: repeat;
+    background-size: 80px auto;
+    opacity: 0.08; /* très léger fond */
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <img src="{{ url_for('static', filename='BOADCarbone.png') }}" alt="Logo BOAD" />
+  </div>
+  <div class="header-center">
+     <h1>
+      Evaluation Carbone
+    </h1>
+  </div>
+  <nav class="header-nav" role="navigation" aria-label="Menu principal">
+    <a href="{{ url_for('index') }}">Accueil</a>
+     <a href="{{ url_for('apropos') }}">A propos</a>
+    <a href="{{ url_for('contact') }}">Contacts</a>
+    <a href="{{url_for('inscriptionclient')}}">Évaluer</a>
+  </nav>
+</header>
+
+<main>
+
+  <section aria-label="Présentation des scopes GES">
+    <h2>Les scopes d’émission selon le <a href="https://ghgprotocol.org/" target="_blank" rel="noopener noreferrer">GHG Protocol</a>
+</h2>
+    <p style="max-width: 720px; margin-bottom: 2.5rem; color:#555; font-size:1.1rem;">
+      Pour une compréhension et une gestion rigoureuses de votre empreinte carbone, les émissions sont classées en trois catégories ou scopes, couvrant tous les aspects directs et indirects liés à vos activités :
+    </p>
+
+    <div class="scopes-container">
+      <article class="scope-card" tabindex="0" aria-labelledby="scope1-title" aria-describedby="scope1-desc">
+        <svg class="scope-icon" viewBox="0 0 64 64" aria-hidden="true" focusable="false" role="img" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="32" cy="32" r="30" stroke="#a71930" stroke-width="4" fill="none"/>
+          <path d="M32 10v44M10 32h44" stroke="#a71930" stroke-width="4" stroke-linecap="round"/>
+        </svg>
+        <h3 id="scope1-title">Scope 1 – Émissions Directes</h3>
+        <p id="scope1-desc" class="scope-description">
+          Ces émissions proviennent directement des sources détenues ou contrôlées par votre organisation : par exemple, la combustion de carburants sur site, l’usage de véhicules d’entreprise, ou les procédés industriels.
+        </p>
+      </article>
+
+      <article class="scope-card" tabindex="0" aria-labelledby="scope2-title" aria-describedby="scope2-desc">
+        <svg class="scope-icon" viewBox="0 0 64 64" aria-hidden="true" focusable="false" role="img" xmlns="http://www.w3.org/2000/svg">
+          <rect x="8" y="8" width="48" height="48" stroke="#a71930" stroke-width="4" fill="none" rx="8"/>
+          <path d="M16 32h32M32 16v32" stroke="#a71930" stroke-width="4" stroke-linecap="round"/>
+        </svg>
+        <h3 id="scope2-title">Scope 2 – Émissions Indirectes liées à l’Énergie</h3>
+        <p id="scope2-desc" class="scope-description">
+          Elles correspondent aux émissions associées à l’électricité, à la chaleur ou à la vapeur achetées et consommées par votre organisation, mais générées en dehors de votre périmètre.
+        </p>
+      </article>
+
+      <article class="scope-card" tabindex="0" aria-labelledby="scope3-title" aria-describedby="scope3-desc">
+        <svg class="scope-icon" viewBox="0 0 64 64" aria-hidden="true" focusable="false" role="img" xmlns="http://www.w3.org/2000/svg">
+          <polygon points="32,6 58,58 6,58" stroke="#a71930" stroke-width="4" fill="none"/>
+          <circle cx="32" cy="38" r="6" stroke="#a71930" stroke-width="4" fill="none"/>
+        </svg>
+        <h3 id="scope3-title">Scope 3 – Autres Émissions Indirectes</h3>
+        <p id="scope3-desc" class="scope-description">
+          Cette catégorie englobe toutes les autres émissions indirectes liées à vos activités : déplacements professionnels, achats, gestion des déchets, chaîne d’approvisionnement, et plus encore.
+        </p>
+      </article>
+    </div>
+  </section>
+
+
+
+  <!-- NOUVELLES SECTIONS -->
+   <h2>1. Introduction</h2>
+    <p>BOADCarbone est un outil numérique développé par la Banque Ouest Africaine de Développement (BOAD) afin d’évaluer l’empreinte carbone des projets qu’elle finance. Accessible sous forme de site web, il permet de calculer automatiquement les émissions de gaz à effet de serre (GES) générées par un projet, en tenant compte des trois scopes définis par le GHG Protocol (émissions directes, indirectes liées à l’énergie, et autres émissions indirectes).</p>
+    <p>L’outil a été conçu pour répondre aux engagements de la BOAD en matière de climat et de durabilité. En mesurant les émissions de GES, BOADCarbone contribue à :</p>
+    <ul>
+        <li>renforcer la transparence dans l’évaluation environnementale des projets ;</li>
+        <li>appuyer la prise de décision en privilégiant les investissements faibles en carbone ;</li>
+        <li>améliorer la qualité des rapports extra-financiers et climatiques de la Banque ;</li>
+    </ul>
+
+    <h3>Objectifs du manuel</h3>
+    <p>Le présent manuel a pour objectif de guider pas à pas les utilisateurs dans la prise en main et l’utilisation de BOADCarbone. Il décrit :</p>
+    <ul>
+        <li>les principales fonctionnalités de l’outil,</li>
+        <li>la procédure de saisie des données projet,</li>
+        <li>le calcul et l’interprétation des résultats,</li>
+        <li>les bonnes pratiques pour garantir la fiabilité des évaluations,</li>
+        <li>et les modalités d’exportation des résultats.</li>
+    </ul>
+
+    <h3>Public cible</h3>
+    <p>Ce manuel s’adresse en général à toute personne intéressée par l’évaluation de l’empreinte carbone de son activité et principalement aux principales directions en charge de l’évaluation des projets, aux directions du climat et aux porteurs de projets ainsi qu’aux partenaires de la BOAD.</p>
+
+    <h3>Rappel du rôle de l’outil</h3>
+    <p>BOADCarbone est avant tout un outil d’aide à la décision. Il ne remplace pas une expertise environnementale complète mais fournit une base de calcul fiable et standardisée des émissions carbone. Il est destiné à être intégré dans le processus d’instruction, de suivi et d’évaluation des projets financés par la Banque.</p>
+
+    <h2>2. Présentation générale de l’outil</h2>
+    <p>BOADCarbone est une application web accessible en ligne, pensée pour être simple d’utilisation et adaptée aux besoins des équipes de la BOAD. Son objectif est de fournir une interface intuitive qui guide l’utilisateur dans la saisie des informations d’un projet et dans la lecture des résultats d’empreinte carbone.</p>
+
+    <h3>2.1. Type d’outil</h3>
+    <p>BOADCarbone est un site web interactif. Il ne nécessite aucune installation sur l’ordinateur de l’utilisateur. L’accès se fait via une URL sécurisée fournie par la BOAD. L’utilisateur dispose de ses propres identifiants afin d’assurer la confidentialité des données saisies.</p>
+
+    <h3>2.2. Fonctionnalités principales</h3>
+    <ul>
+        <li>Saisie des données projet : l’utilisateur peut entrer les informations générales (nom, pays, secteur, budget, durée) et détailler les données techniques (quantités d’énergie consommées, kilomètres parcourus, tonnes de matériaux, etc.).</li>
+        <li>Calcul automatique des émissions : BOADCarbone applique les facteurs d’émission (issus de bases internationales comme DEFRA, IPCC, ADEME, ecoinvent, ou régionales comme WAPP) pour estimer les émissions de GES par scope (1, 2 et 3).</li>
+        <li>Calcul de la séquestration des GES</li>
+        <li>Visualisation des résultats : les résultats sont présentés sous forme de tableaux et de graphiques (camemberts, histogrammes, comparaisons entre projets).</li>
+        <li>Export des résultats : possibilité de générer des rapports au format PDF, facilitant le partage et l’intégration dans les rapports internes de la BOAD.</li>
+    </ul>
+
+    <h3>2.3. Organisation de l’interface</h3>
+    <p>L’interface de BOADCarbone est structurée en modules :</p>
+    <ul>
+        <li>Accueil : page présentant l’objectif de l’outil et les résultats enregistrés par la BOAD en matière de climat sur les projets financés.</li>
+        <li>A propos : Cette page présente la banque et le Département du financement du développement durable (DFDD).</li>
+        <li>Contacts : page pour entrer en contact avec la banque.</li>
+        <li>Évaluer : Cette page permet de commencer une évaluation étape par étape en commençant par le renseignement des informations sur le projet.</li>
+        <ul>
+            <li>Transport : page pour renseigner tout ce qui concerne le transport sur le projet</li>
+            <li>Énergie : page pour renseigner toutes les sources d’énergie utilisées par le projet</li>
+            <li>Équipements : page pour renseigner tout ce qui n’est pas inclus dans les deux précédentes pages</li>
+            <li>Compensation : page pour renseigner les types d’arbres reboisés par le projet</li>
+            <li>Rapport : affiche le rapport d’évaluation avec possibilité d’imprimer</li>
+        </ul>
+        <li>Aide : fournit des détails sur les définitions des scopes et liens d’accès aux sources</li>
+    </ul>
+
+    <h2>3. Prise en main de l’outil</h2>
+    <h3>3.1. Accéder à l’outil BOADCarbone</h3>
+    <p>L’outil BOADCarbone est disponible en ligne à l’adresse suivante : <strong>www.boadcarbone.org</strong></p>
+    <p>Prérequis techniques :</p>
+    <ul>
+        <li>Navigateur web à jour (Chrome, Firefox, Edge, Safari)</li>
+        <li>Connexion internet stable</li>
+        <li>Ordinateur, tablette ou smartphone</li>
+    </ul>
+
+    <h3>3.2. Interface utilisateur</h3>
+    <p>Une fois l’adresse saisie, l’utilisateur accède à la page d’accueil qui présente :</p>
+    <ul>
+        <li>Description des objectifs de l’outil</li>
+        <li>Menus de navigation pour accéder aux pages</li>
+        <li>Statistiques sur les efforts déjà enregistrés par la BOAD</li>
+    </ul>
+
+    <figure>
+        <figcaption>Figure 1 : Page d'accueil de BOADCarbone</figcaption>
+    </figure>
+
+    <p>En cliquant sur chacun des boutons du menu, on accède aux différentes pages :</p>
+    <figure>
+        <figcaption>Figure 2 : Aperçu de la page « A propos »</figcaption>
+    </figure>
+    <figure>
+        <figcaption>Figure 3 : Aperçu de la page « Contacts »</figcaption>
+    </figure>
+    <figure>
+        <figcaption>Figure 4 : Aperçu de la page « Aide »</figcaption>
+    </figure>
+    <figure>
+        <figcaption>Figure 5 : Aperçu de la page « Évaluer »</figcaption>
+    </figure>
+
+    <h2>4. Processus d’évaluation étape par étape</h2>
+    <h3>Étape 1 : Informations sur le projet</h3>
+    <p>Cliquer sur « Évaluer » pour saisir les informations du projet, puis sur « Continuer ».</p>
+    <figure>
+        <figcaption>Figure 6 : Exemple de remplissage de la page d'informations sur le projet</figcaption>
+    </figure>
+
+    <h3>Étape 2 : Émissions sur les « Transport »</h3>
+    <div class="scope">
+        <strong>Scope 1 :</strong> Émissions directes des véhicules possédés par le projet
+    </div>
+    <p>Cliquer sur « Ajouter scope 1 », renseigner type de transport, engin, nombre, distance. Répéter pour chaque modèle.</p>
+    <figure>
+        <figcaption>Figure 7 : Interface Transport - scope 1</figcaption>
+    </figure>
+
+    <div class="scope">
+        <strong>Scope 2 :</strong> Émissions indirectes liées à l’énergie des véhicules
+    </div>
+    <figure>
+        <figcaption>Figure 8 : Interface Transport - scope 2</figcaption>
+    </figure>
+
+    <div class="scope">
+        <strong>Scope 3 :</strong> Émissions indirectes liées aux véhicules hors contrôle du projet
+    </div>
+    <figure>
+        <figcaption>Figure 9 : Interface Transport - scope 3</figcaption>
+    </figure>
+
+    <h3>Étape 2 : Émissions sur les « Énergie »</h3>
+    <div class="scope">
+        <strong>Scope 1 :</strong> Émissions directes dues à l’énergie consommée
+    </div>
+    <div class="scope">
+        <strong>Scope 2 :</strong> Émissions indirectes liées à l’énergie électrique
+    </div>
+    <div class="scope">
+        <strong>Scope 3 :</strong> Émissions indirectes liées aux activités en amont et aval
+    </div>
+    <figure>
+        <figcaption>Figure 10 : Interface Énergie</figcaption>
+    </figure>
+
+    <h3>Étape 3 : Émissions sur les « Équipements »</h3>
+    <p>Tous les éléments hors transport et énergie. Catégorie scope 3. Ajout manuel possible avec facteur d’émission.</p>
+    <figure>
+        <figcaption>Figure 11 : Interface Équipements</figcaption>
+    </figure>
+
+    <h3>Étape 4 : Compensation des émissions carbone</h3>
+    <p>Ajouter un arbre pour évaluer la séquestration du CO<sub>2</sub>.</p>
+    <figure>
+        <figcaption>Figure 12 : Interface Compensation</figcaption>
+    </figure>
+
+    <h3>Étape 5 : Rapport d’évaluation</h3>
+    <p>Le rapport PDF présente sous-totaux par catégorie, compensation et total du projet.</p>
+    <figure>
+        <figcaption>Figure 13 : Rapport d'évaluation (1)</figcaption>
+    </figure>
+    <figure>
+        <figcaption>Figure 14 : Rapport d'évaluation (2)</figcaption>
+    </figure>
+
+    <h2>5. Interprétation des résultats</h2>
+    <p>Le rapport permet de visualiser les émissions totales et le potentiel de séquestration par catégorie.</p>
+    <p>Exemple : catégorie « Transport » = 414.54 kgCO<sub>2</sub>e</p>
+    <p class="note">NB : même interprétation pour les autres catégories. Le rapport peut être téléchargé en PDF.</p>
+
+
+
+
+
+</main>
+
+<footer>
+  © 2025 BOAD - Banque Ouest Africaine de Développement. Tous droits réservés.
+</footer>
+
+<script>
+  function resetAllAndRedirect(event) {
+    event.preventDefault();
+    sessionStorage.clear();
+    localStorage.clear();
+    window.location.href = "/transport";
+  }
+</script>
+
+<!-- Google Translate Widget -->
+<div id="google_translate_element" style="position: fixed; top: 10px; right: 10px; z-index: 9999;"></div>
+
+<script type="text/javascript">
+  function googleTranslateElementInit() {
+    new google.translate.TranslateElement({
+      pageLanguage: 'fr',
+      includedLanguages: 'en,fr,pt,fon', // Tu peux ajouter d'autres langues ici
+      layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+      autoDisplay: false
+    }, 'google_translate_element');
+  }
+</script>
+
+<script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+
+</body>
+</html>

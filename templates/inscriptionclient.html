@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BOAD - Inscription Projet</title>
+  <style>
+    /* Reprise des styles globaux de ta page */
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+    html{
+      margin: 0; padding: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #fdfcf9;
+      color: #222;
+      font-size: 1rem;
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      scroll-behavior: smooth;
+    }
+
+    body { margin: 0; padding: 0}
+
+  header {
+  background-color: #a71930;
+  height: 80px;
+  padding: 0 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  overflow: hidden;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+
+.header-left img {
+  height: 120px;
+  width: auto;
+  display: block;
+  object-fit: contain;
+}
+
+    .header-center {
+      flex-grow: 1;
+      min-width: 250px;
+      text-align: center;
+    }
+    .header-center h1 {
+      margin: 0;
+      font-weight: 700;
+      font-size: 1.75rem;
+      color: #fff;
+      user-select: none;
+    }
+    nav.header-nav {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    nav.header-nav a {
+      color: #fff;
+      text-decoration: none;
+      font-weight: 600;
+      padding: 0.6rem 1.2rem;
+      border-radius: 8px;
+      transition: background-color 0.3s ease, color 0.3s ease;
+      white-space: nowrap;
+      font-size: 1rem;
+    }
+    nav.header-nav a:hover,
+    nav.header-nav a:focus {
+      background-color: rgba(255, 255, 255, 0.3);
+      outline: none;
+      color: #ffebc2;
+    }
+    main {
+      max-width: 600px;
+      margin: 3rem auto 4rem;
+      padding: 0 1.5rem;
+      flex-grow: 1;
+      animation: fadeIn 1s ease-out forwards;
+    }
+    h2 {
+      color: #a00000;
+      font-size: 2.1rem;
+      margin-bottom: 1.5rem;
+      font-weight: 800;
+      border-bottom: 4px solid #a00000;
+      padding-bottom: 0.4rem;
+      letter-spacing: 0.04em;
+      text-align: center;
+    }
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 1.3rem;
+      background: #fff8f0;
+      padding: 2rem 2rem 2.5rem;
+      border-radius: 12px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+      font-weight: 600;
+    }
+    label {
+      display: flex;
+      flex-direction: column;
+      font-size: 1.05rem;
+      color: #333;
+      gap: 0.3rem;
+    }
+    input[type="text"],
+    input[type="email"],
+    input[type="tel"] {
+      padding: 0.7rem 1rem;
+      font-size: 1rem;
+      border: 2px solid #a00000;
+      border-radius: 8px;
+      transition: border-color 0.3s ease;
+      font-weight: 500;
+    }
+    input[type="text"]:focus,
+    input[type="email"]:focus,
+    input[type="tel"]:focus {
+      outline: none;
+      border-color: #006400;
+    }
+    .error-message {
+      color: #a71930;
+      font-size: 0.9rem;
+      font-weight: 700;
+      margin-top: -0.8rem;
+    }
+    button[type="submit"] {
+      background: linear-gradient(135deg, #a00000, #006400);
+      color: white;
+      font-weight: 700;
+      font-size: 1.2rem;
+      padding: 1rem 2rem;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.3s ease;
+      align-self: center;
+      width: 50%;
+      margin-top: 1rem;
+    }
+    button[type="submit"]:hover,
+    button[type="submit"]:focus {
+      background: linear-gradient(135deg, #006400, #a00000);
+      outline: none;
+    }
+
+        footer {
+      background-color: #c9a200;
+      color: white;
+      font-weight: 700;
+      text-align: center;
+      padding: 1.2rem 1rem;
+      font-size: 1rem;
+      margin-top: auto;
+      user-select: none;
+      letter-spacing: 0.04em;
+    }
+
+    input[type="number"] {
+  padding: 0.7rem 1rem;
+  font-size: 1rem;
+  border: 2px solid #a00000;
+  border-radius: 8px;
+  transition: border-color 0.3s ease;
+  font-weight: 500;
+}
+
+input[type="number"]:focus {
+  outline: none;
+  border-color: #006400;
+}
+
+
+      body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('{{ url_for("static", filename="logo-boad.webp") }}');
+    background-repeat: repeat;
+    background-size: 80px auto;
+    opacity: 0.08; /* très léger fond */
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <img src="{{ url_for('static', filename='BOADCarbone.png') }}" alt="Logo BOAD" />
+  </div>
+  <div class="header-center">
+    <h1>
+      Evaluation Carbone
+    </h1>
+  </div>
+  <nav class="header-nav" role="navigation" aria-label="Menu principal">
+    <a href="{{ url_for('index') }}">Accueil</a>
+    <a href="{{ url_for('contact') }}">Contacts</a>
+    <a href="{{ url_for('apropos') }}">A propos</a>
+    <a href="{{ url_for('aide') }}">Aide</a>
+  </nav>
+</header>
+
+<main>
+  <h2>Informations sur le projet</h2>
+  <form method="POST" novalidate>
+    <label for="nom">
+      Nom complet *
+      <input type="text" id="nom" name="nom" required minlength="2" maxlength="50" pattern="[A-Za-zÀ-ÖØ-öø-ÿ \-']+" value="{{ request.form.nom or '' }}" placeholder="Nom complet du porteur de projet" />
+      {% if errors.nom %}
+        <span class="error-message">{{ errors.nom }}</span>
+      {% endif %}
+    </label>
+
+    <label for="email">
+      Adresse e-mail *
+      <input type="email" id="email" name="email" required value="{{ request.form.email or '' }}" placeholder="Adresse mail du porteur de projet" />
+      {% if errors.email %}
+        <span class="error-message">{{ errors.email }}</span>
+      {% endif %}
+    </label>
+
+    <label for="telephone">
+      Numéro de téléphone *
+      <input type="tel" id="telephone" name="telephone" required pattern="^\+?[0-9\s\-]{6,20}$" value="{{ request.form.telephone or '' }}" placeholder="(+000) 00 00 00 00" />
+      {% if errors.telephone %}
+        <span class="error-message">{{ errors.telephone }}</span>
+      {% endif %}
+    </label>
+
+    <label for="nom_projet">
+      Nom du projet *
+      <input type="text" id="nom_projet" name="nom_projet" required minlength="2" maxlength="80" value="{{ request.form.nom_projet or '' }}" placeholder="Merci de renseigner brièvement le nom de votre projet." />
+      {% if errors.nom_projet %}
+        <span class="error-message">{{ errors.nom_projet }}</span>
+      {% endif %}
+    </label>
+
+
+    <label for="duree_projet">
+  Durée du projet (en mois) *
+  <input type="number" id="duree_projet" name="duree_projet" required min="1" max="120" value="{{ request.form.duree_projet or '' }}" placeholder="Ex. : 24" />
+  {% if errors.duree_projet %}
+    <span class="error-message">{{ errors.duree_projet }}</span>
+  {% endif %}
+</label>
+
+
+    <button type="submit">Continuer</button>
+  </form>
+</main>
+
+<footer>
+  © 2025 BOAD - Banque Ouest Africaine de Développement. Tous droits réservés.
+</footer>
+
+
+<script>
+  sessionStorage.clear();
+  localStorage.clear();
+</script>
+
+
+<!-- Google Translate Widget -->
+<div id="google_translate_element" style="position: fixed; top: 10px; right: 10px; z-index: 9999;"></div>
+
+<script type="text/javascript">
+  function googleTranslateElementInit() {
+    new google.translate.TranslateElement({
+      pageLanguage: 'fr',
+      includedLanguages: 'en,fr,pt,fon', // Tu peux ajouter d'autres langues ici
+      layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+      autoDisplay: false
+    }, 'google_translate_element');
+  }
+</script>
+
+<script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+</body>
+</html>

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Code de vérification</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      text-align: center;
+      padding: 2rem;
+    }
+    .code-box {
+      background: white;
+      padding: 2rem;
+      border-radius: 10px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      display: inline-block;
+      margin-top: 2rem;
+    }
+    .code {
+      font-size: 2.5rem;
+      font-weight: bold;
+      color: #a00000;
+      margin-bottom: 1rem;
+    }
+    a {
+      display: inline-block;
+      margin-top: 1rem;
+      color: #006400;
+      text-decoration: none;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>Votre code de vérification</h1>
+  <div class="code-box">
+    <p class="code">{{ code }}</p>
+    <p>Veuillez copier ce code et le coller sur la page suivante pour continuer.</p>
+  </div>
+  <a href="/verification">Aller à la page de vérification</a>
+</body>
+</html>
