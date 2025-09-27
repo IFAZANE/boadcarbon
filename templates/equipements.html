@@ -294,7 +294,7 @@ td:nth-child(5) input {
    <div class="add-buttons">
   <button type="button" onclick="addEquipementRow('scope_3')">➕ Ajouter équipements</button>
       <button type="button" onclick="addEnginRow('scope_3')">➕ Ajouter Engin</button>
-  <button type="button" onclick="addManualRow('scope_3')">➕ Ajouter Manuel</button>
+<!--  <button type="button" onclick="addManualRow('scope_3')">➕ Ajouter Manuel</button>-->
 </div>
 
 
@@ -436,11 +436,23 @@ function renderTable() {
       tdEngin.appendChild(inputQte);
 
     } else if (row.mode === "engin") {
+      // Sélection type : Agricole ou BTP
+      const selectType = document.createElement('select');
+      selectType.className = "input-compact";
+      selectType.innerHTML = `
+        <option value="">Type d'engin</option>
+        <option value="agricole">Agricole</option>
+        <option value="btp">Construction / BTP</option>
+      `;
+      selectType.value = row.type_engin || '';
+      selectType.onchange = e => { row.type_engin = e.target.value; saveAndRender(); };
+      tdEngin.appendChild(selectType);
+
       // Nom
       const inputNom = document.createElement('input');
       inputNom.type = "text";
       inputNom.className = "input-compact";
-      inputNom.placeholder = row.placeholders?.engin || "Nom de l'engin (ex: Tracteur)";
+      inputNom.placeholder = row.placeholders?.engin || "Nom de l'engin (ex: Tracteur, Bulldozer)";
       inputNom.value = row.engin || '';
       inputNom.oninput = e => { row.engin = e.target.value; sessionStorage.setItem('equipementRows', JSON.stringify(equipementRows)); };
       tdEngin.appendChild(inputNom);
@@ -458,13 +470,13 @@ function renderTable() {
       inputCarb.onchange = e => { row.carburant = e.target.value; saveAndRender(); };
       tdEngin.appendChild(inputCarb);
 
-      // Puissance
+      // Puissance ou conso horaire
       const inputPuissance = document.createElement('input');
       inputPuissance.type = "number";
       inputPuissance.inputMode = "decimal";
       inputPuissance.step = "any";
       inputPuissance.min = "0";
-      inputPuissance.placeholder = row.placeholders?.puissance || "Puissance (CV) ex: 75";
+      inputPuissance.placeholder = row.type_engin === "btp" ? "Conso horaire (L/h)" : "Puissance (CV)";
       inputPuissance.className = "input-compact";
       inputPuissance.value = row.puissance || '';
       inputPuissance.oninput = e => { row.puissance = parseNum(e.target.value); saveAndRender(); };
@@ -476,23 +488,25 @@ function renderTable() {
       inputDuree.inputMode = "decimal";
       inputDuree.step = "any";
       inputDuree.min = "0";
-      inputDuree.placeholder = row.placeholders?.duree || "Durée (h) ex: 10";
+      inputDuree.placeholder = "Durée (h)";
       inputDuree.className = "input-compact";
       inputDuree.value = row.duree || '';
       inputDuree.oninput = e => { row.duree = parseNum(e.target.value); saveAndRender(); };
       tdEngin.appendChild(inputDuree);
 
-      // Surface
-      const inputSurface = document.createElement('input');
-      inputSurface.type = "number";
-      inputSurface.inputMode = "decimal";
-      inputSurface.step = "any";
-      inputSurface.min = "0";
-      inputSurface.placeholder = row.placeholders?.surface || "Surface (ha) ex: 2";
-      inputSurface.className = "input-compact";
-      inputSurface.value = row.surface || '';
-      inputSurface.oninput = e => { row.surface = parseNum(e.target.value); saveAndRender(); };
-      tdEngin.appendChild(inputSurface);
+      // Surface uniquement si agricole
+      if (row.type_engin === "agricole") {
+        const inputSurface = document.createElement('input');
+        inputSurface.type = "number";
+        inputSurface.inputMode = "decimal";
+        inputSurface.step = "any";
+        inputSurface.min = "0";
+        inputSurface.placeholder = "Surface (ha)";
+        inputSurface.className = "input-compact";
+        inputSurface.value = row.surface || '';
+        inputSurface.oninput = e => { row.surface = parseNum(e.target.value); saveAndRender(); };
+        tdEngin.appendChild(inputSurface);
+      }
     } else {
       // Pré-défini
       const selEngin = document.createElement('select');
@@ -553,7 +567,7 @@ function renderTable() {
     inputQte.inputMode = "decimal";
     inputQte.step = 'any';
     inputQte.min = '0';
-    inputQte.placeholder = row.placeholders?.quantite || "Ex. 10";
+    inputQte.placeholder = row.placeholders?.quantite || "Ex. 1";
     inputQte.className = 'input-compact';
     inputQte.value = row.quantite || '';
     inputQte.oninput = e => { row.quantite = parseNum(e.target.value); saveAndRender(); };
@@ -567,8 +581,16 @@ function renderTable() {
     if (row.mode === "engin") {
       const feCarburant = { diesel: 2.68, essence: 2.31, elec: 0.075 };
       const carburantFE = feCarburant[row.carburant] || 0;
-      const consommation = row.carburant === 'elec' ? row.puissance * row.duree : row.puissance * 0.24 * row.duree;
-      total = ((consommation * carburantFE) / (row.surface || 1)) * parseNum(row.quantite);
+
+      if (row.type_engin === "agricole") {
+        const consommation = row.carburant === 'elec'
+          ? row.puissance * row.duree
+          : row.puissance * 0.24 * row.duree;
+        total = ((consommation * carburantFE) / (row.surface || 1)) * parseNum(row.quantite);
+      } else if (row.type_engin === "btp") {
+        const consommation = row.puissance * row.duree; // ici puissance = conso horaire
+        total = (consommation * carburantFE) * parseNum(row.quantite);
+      }
     } else {
       total = parseNum(row.facteur) * parseNum(row.quantite);
     }
@@ -598,8 +620,17 @@ function renderTable() {
     if (r.mode === "engin") {
       const feCarburant = { diesel: 2.68, essence: 2.31, elec: 0.075 };
       const carburantFE = feCarburant[r.carburant] || 0;
-      const consommation = r.carburant === 'elec' ? r.puissance * r.duree : r.puissance * 0.24 * r.duree;
-      return acc + ((consommation * carburantFE) / (r.surface || 1)) * parseNum(r.quantite);
+
+      if (r.type_engin === "agricole") {
+        const consommation = r.carburant === 'elec'
+          ? r.puissance * r.duree
+          : r.puissance * 0.24 * r.duree;
+        return acc + ((consommation * carburantFE) / (r.surface || 1)) * parseNum(r.quantite);
+      } else if (r.type_engin === "btp") {
+        const consommation = r.puissance * r.duree;
+        return acc + (consommation * carburantFE) * parseNum(r.quantite);
+      }
+      return acc;
     } else {
       return acc + parseNum(r.facteur) * parseNum(r.quantite);
     }
@@ -614,8 +645,17 @@ function renderTable() {
     if (r.mode === "engin") {
       const feCarburant = { diesel: 2.68, essence: 2.31, elec: 0.075 };
       const carburantFE = feCarburant[r.carburant] || 0;
-      const consommation = r.carburant === 'elec' ? r.puissance * r.duree : r.puissance * 0.24 * r.duree;
-      return acc + ((consommation * carburantFE) / (r.surface || 1)) * parseNum(r.quantite);
+
+      if (r.type_engin === "agricole") {
+        const consommation = r.carburant === 'elec'
+          ? r.puissance * r.duree
+          : r.puissance * 0.24 * r.duree;
+        return acc + ((consommation * carburantFE) / (r.surface || 1)) * parseNum(r.quantite);
+      } else if (r.type_engin === "btp") {
+        const consommation = r.puissance * r.duree;
+        return acc + (consommation * carburantFE) * parseNum(r.quantite);
+      }
+      return acc;
     } else {
       return acc + parseNum(r.facteur) * parseNum(r.quantite);
     }
@@ -686,16 +726,17 @@ function addEnginRow(scope) {
     description: '',
     quantite: '',
     carburant: '',
+    type_engin: '',
     puissance: '',
     duree: '',
     surface: '',
     _autofocus: true,
     placeholders: {
-      engin: "Nom de l'engin (ex: Tracteur)",
+      engin: "Nom de l'engin (ex: Tracteur ou Bulldozer)",
       carburant: "Choisir carburant",
-      puissance: "Puissance (CV) ex: 75",
-      duree: "Durée d'activité (h) ex: 10",
-      surface: "Surface agricole (ha) ex: 2",
+      puissance: "Puissance (CV) ou Conso (L/h)",
+      duree: "Durée (h)",
+      surface: "Surface agricole (ha, si agricole)",
       quantite: "Ex. 1"
     }
   });
