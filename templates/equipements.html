@@ -269,6 +269,7 @@ td:nth-child(5) input {
 
   </style>
 </head>
+
 <body>
   <!-- HEADER horizontal -->
   <header>
@@ -291,7 +292,8 @@ td:nth-child(5) input {
 
 
    <div class="add-buttons">
-  <button type="button" onclick="addEquipementRow('scope_3')">➕ Ajouter Scope 3</button>
+  <button type="button" onclick="addEquipementRow('scope_3')">➕ Ajouter équipements</button>
+      <button type="button" onclick="addEnginRow('scope_3')">➕ Ajouter Engin</button>
   <button type="button" onclick="addManualRow('scope_3')">➕ Ajouter Manuel</button>
 </div>
 
@@ -319,270 +321,403 @@ td:nth-child(5) input {
     </div>
   </main>
 
-  <script>
-  const enginsData = {{ engins_equipements | tojson }};
-  let equipementRows = [];
+<script>
+const enginsData = {{ engins_equipements | tojson }};
+let equipementRows = [];
 
-  // ---------- Helpers format / parse ----------
-  function parseNum(v) {
-    if (typeof v === 'number') return v;
-    if (v === null || v === undefined) return 0;
-    const n = parseFloat(String(v).replace(',', '.'));
-    return isNaN(n) ? 0 : n;
-  }
-  function fmt2(x) {
-    return (x || 0).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  }
+// ---------- Helpers ----------
+function parseNum(v) {
+  if (typeof v === 'number') return v;
+  if (v === null || v === undefined || v === '') return 0;
+  const n = parseFloat(String(v).replace(',', '.'));
+  return isNaN(n) ? 0 : n;
+}
 
-  function afficherDescription(description) {
-    document.getElementById('enginDescription').textContent = description || '';
-  }
+function fmt2(x) {
+  return (x || 0).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
 
-  function renderTable() {
-    const tbody = document.getElementById('equipementBody');
-    tbody.innerHTML = '';
+function afficherDescription(description) {
+  document.getElementById('enginDescription').textContent = description || '';
+}
 
-    const scope = 'scope_3';
-    const rowsFiltered = equipementRows.filter(r => r.scope === scope);
+// ---------- Render Table ----------
+function renderTable() {
+  const tbody = document.getElementById('equipementBody');
+  tbody.innerHTML = '';
 
-    // --------- Titre de section ---------
-    const trTitle = document.createElement('tr');
-    trTitle.className = 'section-title';
-    const tdTitle = document.createElement('td');
-    tdTitle.colSpan = 7;
-    tdTitle.textContent = "SCOPE 3 — ÉQUIPEMENTS";
-    trTitle.appendChild(tdTitle);
-    tbody.appendChild(trTitle);
+  const scope = 'scope_3';
+  const rowsFiltered = equipementRows.filter(r => r.scope === scope);
 
-    // --------- Lignes données ---------
-    rowsFiltered.forEach(row => {
-      const tr = document.createElement('tr');
+  // Section title
+  const trTitle = document.createElement('tr');
+  trTitle.className = 'section-title';
+  const tdTitle = document.createElement('td');
+  tdTitle.colSpan = 7;
+  tdTitle.textContent = "SCOPE 3 — ÉQUIPEMENTS";
+  trTitle.appendChild(tdTitle);
+  tbody.appendChild(trTitle);
 
-      // Col 1: Mode
-      const tdMode = document.createElement('td');
-      const chip = document.createElement('span');
-      chip.className = `chip ${row.mode === 'manuel' ? 'chip-manuel' : 'chip-predef'}`;
-      chip.textContent = row.mode === 'manuel' ? 'Manuel' : 'Pré-défini';
-      tdMode.appendChild(chip);
-      tr.appendChild(tdMode);
+  // Rows
+  rowsFiltered.forEach(row => {
+    const tr = document.createElement('tr');
 
-      // Col 2: Catégorie
-      const tdCat = document.createElement('td');
-      if (row.mode === "manuel") {
-        tdCat.innerHTML = `<span style="color:#64748b">— (saisi manuel)</span>`;
-      } else {
-        const selCat = document.createElement('select');
-        selCat.className = 'input-compact';
-        selCat.innerHTML = `<option value="">— Choisir une catégorie —</option>`;
-        Object.keys(enginsData[scope]).forEach(cat => {
-          const opt = document.createElement('option');
-          opt.value = cat;
-          opt.textContent = cat;
-          if (row.categorie === cat) opt.selected = true;
-          selCat.appendChild(opt);
-        });
-        selCat.onchange = e => {
-          row.categorie = e.target.value;
-          row.engin = '';
-          row.facteur = 0;
-          row.description = '';
-          row.unite = 'U';
-          afficherDescription('');
-          saveAndRender();
-        };
-        tdCat.appendChild(selCat);
-      }
-      tr.appendChild(tdCat);
+    // Col 1: Mode
+    const tdMode = document.createElement('td');
+    const chip = document.createElement('span');
+    chip.className = `chip ${row.mode === 'manuel' ? 'chip-manuel' : (row.mode === 'engin' ? 'chip-engin' : 'chip-predef')}`;
+    chip.textContent = row.mode === 'manuel' ? 'Manuel' : (row.mode === 'engin' ? 'Engin' : 'Pré-défini');
+    tdMode.appendChild(chip);
+    tr.appendChild(tdMode);
 
-      // Col 3: Type d'équipement
-      const tdEngin = document.createElement('td');
-      if (row.mode === "manuel") {
-        const inputNom = document.createElement('input');
-        inputNom.type = "text";
-        inputNom.className = "input-compact";
-        inputNom.placeholder = "Nom de l'équipement";
-        inputNom.value = row.engin || "";
+    // Col 2: Catégorie
+    const tdCat = document.createElement('td');
+    if (row.mode === "manuel" || row.mode === "engin") {
+      tdCat.innerHTML = `<span style="color:#64748b">— (saisi ${row.mode})</span>`;
+    } else {
+      const selCat = document.createElement('select');
+      selCat.className = 'input-compact';
+      selCat.innerHTML = `<option value="">— Choisir une catégorie —</option>`;
+      Object.keys(enginsData[scope]).forEach(cat => {
+        const opt = document.createElement('option');
+        opt.value = cat;
+        opt.textContent = cat;
+        if (row.categorie === cat) opt.selected = true;
+        selCat.appendChild(opt);
+      });
+      selCat.onchange = e => {
+        row.categorie = e.target.value;
+        row.engin = '';
+        row.facteur = '';
+        row.description = '';
+        row.unite = 'U';
+        afficherDescription('');
+        saveAndRender();
+      };
+      tdCat.appendChild(selCat);
+    }
+    tr.appendChild(tdCat);
 
-        // ✅ Mise à jour du modèle seulement
-        inputNom.oninput = e => { row.engin = e.target.value; sessionStorage.setItem('equipementRows', JSON.stringify(equipementRows)); };
-        // ✅ Re-render seulement quand on sort du champ
-        inputNom.onblur = () => saveAndRender();
+    // Col 3: Type d'équipement
+    const tdEngin = document.createElement('td');
+    if (row.mode === "manuel") {
+      // Nom
+      const inputNom = document.createElement('input');
+      inputNom.type = "text";
+      inputNom.className = "input-compact";
+      inputNom.placeholder = row.placeholders?.engin || "Nom de l'équipement (ex: Scie)";
+      inputNom.value = row.engin || '';
+      inputNom.oninput = e => { row.engin = e.target.value; sessionStorage.setItem('equipementRows', JSON.stringify(equipementRows)); };
+      inputNom.onblur = () => saveAndRender();
+      tdEngin.appendChild(inputNom);
 
-        tdEngin.appendChild(inputNom);
+      // Facteur
+      const inputFacteur = document.createElement('input');
+      inputFacteur.type = "number";
+      inputFacteur.inputMode = "decimal";
+      inputFacteur.step = "any";
+      inputFacteur.min = "0";
+      inputFacteur.placeholder = row.placeholders?.facteur || "Ex. 2,75";
+      inputFacteur.className = "input-compact";
+      inputFacteur.value = row.facteur || '';
+      inputFacteur.oninput = e => { row.facteur = parseNum(e.target.value); saveAndRender(); };
+      tdEngin.appendChild(inputFacteur);
 
-        if (row._autofocus) {
-          setTimeout(() => inputNom.focus(), 0);
-          row._autofocus = false;
-        }
-      } else {
-        const selEngin = document.createElement('select');
-        selEngin.className = 'input-compact';
-        selEngin.innerHTML = `<option value="">— Choisir l'équipement —</option>`;
-        if (row.categorie && enginsData[scope][row.categorie]) {
-          enginsData[scope][row.categorie].forEach(engin => {
-            const opt = document.createElement('option');
-            opt.value = engin.nom;
-            opt.textContent = engin.nom;
-            if (engin.nom === row.engin) opt.selected = true;
-            selEngin.appendChild(opt);
-          });
-        }
-        selEngin.onchange = e => {
-          const selected = e.target.value;
-          row.engin = selected;
-          if (row.categorie) {
-            const match = enginsData[scope][row.categorie].find(engin => engin.nom === selected);
-            row.facteur = match ? parseNum(match.facteur) : 0;
-            row.description = match ? match.description : '';
-            row.unite = match ? (match.unite || 'U') : 'U';
-            afficherDescription(row.description);
-          }
-          saveAndRender();
-        };
-        tdEngin.appendChild(selEngin);
-      }
-      tr.appendChild(tdEngin);
-
-      // Col 4: Facteur
-      const tdFacteur = document.createElement('td');
-      if (row.mode === "manuel") {
-        const inputFacteur = document.createElement('input');
-        inputFacteur.type = "number";
-        inputFacteur.inputMode = "decimal";
-        inputFacteur.step = "any";
-        inputFacteur.min = "0";
-        inputFacteur.placeholder = "ex. 2,75";
-        inputFacteur.className = "input-compact";
-        inputFacteur.value = (row.facteur || 0);
-
-        inputFacteur.oninput = e => { row.facteur = parseNum(e.target.value); sessionStorage.setItem('equipementRows', JSON.stringify(equipementRows)); };
-        inputFacteur.onblur = () => saveAndRender();
-
-        tdFacteur.appendChild(inputFacteur);
-      } else {
-        const ro = document.createElement('input');
-        ro.type = 'text';
-        ro.readOnly = true;
-        ro.className = 'input-compact input-readonly';
-        ro.value = row.facteur ? row.facteur : 0;
-        tdFacteur.appendChild(ro);
-      }
-      tr.appendChild(tdFacteur);
-
-      // Col 5: Quantité
-      const tdQte = document.createElement('td');
+      // Quantité
       const inputQte = document.createElement('input');
       inputQte.type = 'number';
       inputQte.inputMode = "decimal";
       inputQte.step = 'any';
       inputQte.min = '0';
-      inputQte.placeholder = "ex. 10";
+      inputQte.placeholder = row.placeholders?.quantite || "Ex. 10";
       inputQte.className = 'input-compact';
-      inputQte.value = (row.quantite ?? 0);
+      inputQte.value = row.quantite || '';
+      inputQte.oninput = e => { row.quantite = parseNum(e.target.value); saveAndRender(); };
+      tdEngin.appendChild(inputQte);
 
-      inputQte.oninput = e => { row.quantite = parseNum(e.target.value); sessionStorage.setItem('equipementRows', JSON.stringify(equipementRows)); };
-      inputQte.onblur = () => saveAndRender();
+    } else if (row.mode === "engin") {
+      // Nom
+      const inputNom = document.createElement('input');
+      inputNom.type = "text";
+      inputNom.className = "input-compact";
+      inputNom.placeholder = row.placeholders?.engin || "Nom de l'engin (ex: Tracteur)";
+      inputNom.value = row.engin || '';
+      inputNom.oninput = e => { row.engin = e.target.value; sessionStorage.setItem('equipementRows', JSON.stringify(equipementRows)); };
+      tdEngin.appendChild(inputNom);
 
-      tdQte.appendChild(inputQte);
-      tr.appendChild(tdQte);
+      // Carburant
+      const inputCarb = document.createElement('select');
+      inputCarb.className = "input-compact";
+      inputCarb.innerHTML = `
+        <option value="">${row.placeholders?.carburant || "Choisir carburant"}</option>
+        <option value="diesel">Diesel</option>
+        <option value="essence">Essence</option>
+        <option value="elec">Électrique</option>
+      `;
+      inputCarb.value = row.carburant || '';
+      inputCarb.onchange = e => { row.carburant = e.target.value; saveAndRender(); };
+      tdEngin.appendChild(inputCarb);
 
-      // Col 6: Émissions
-      const tdEm = document.createElement('td');
-      const total = parseNum(row.facteur) * parseNum(row.quantite);
-      tdEm.textContent = fmt2(total);
-      tr.appendChild(tdEm);
+      // Puissance
+      const inputPuissance = document.createElement('input');
+      inputPuissance.type = "number";
+      inputPuissance.inputMode = "decimal";
+      inputPuissance.step = "any";
+      inputPuissance.min = "0";
+      inputPuissance.placeholder = row.placeholders?.puissance || "Puissance (CV) ex: 75";
+      inputPuissance.className = "input-compact";
+      inputPuissance.value = row.puissance || '';
+      inputPuissance.oninput = e => { row.puissance = parseNum(e.target.value); saveAndRender(); };
+      tdEngin.appendChild(inputPuissance);
 
-      // Col 7: Action
-      const tdAct = document.createElement('td');
-      const btn = document.createElement('button');
-      btn.className = 'action-btn';
-      btn.title = "Supprimer la ligne";
-      btn.textContent = '🗑️';
-      btn.onclick = () => {
-        equipementRows.splice(equipementRows.indexOf(row), 1);
-        afficherDescription('');
+      // Durée
+      const inputDuree = document.createElement('input');
+      inputDuree.type = "number";
+      inputDuree.inputMode = "decimal";
+      inputDuree.step = "any";
+      inputDuree.min = "0";
+      inputDuree.placeholder = row.placeholders?.duree || "Durée (h) ex: 10";
+      inputDuree.className = "input-compact";
+      inputDuree.value = row.duree || '';
+      inputDuree.oninput = e => { row.duree = parseNum(e.target.value); saveAndRender(); };
+      tdEngin.appendChild(inputDuree);
+
+      // Surface
+      const inputSurface = document.createElement('input');
+      inputSurface.type = "number";
+      inputSurface.inputMode = "decimal";
+      inputSurface.step = "any";
+      inputSurface.min = "0";
+      inputSurface.placeholder = row.placeholders?.surface || "Surface (ha) ex: 2";
+      inputSurface.className = "input-compact";
+      inputSurface.value = row.surface || '';
+      inputSurface.oninput = e => { row.surface = parseNum(e.target.value); saveAndRender(); };
+      tdEngin.appendChild(inputSurface);
+    } else {
+      // Pré-défini
+      const selEngin = document.createElement('select');
+      selEngin.className = 'input-compact';
+      selEngin.innerHTML = `<option value="">— Choisir l'équipement —</option>`;
+      if (row.categorie && enginsData[scope][row.categorie]) {
+        enginsData[scope][row.categorie].forEach(engin => {
+          const opt = document.createElement('option');
+          opt.value = engin.nom;
+          opt.textContent = engin.nom;
+          if (engin.nom === row.engin) opt.selected = true;
+          selEngin.appendChild(opt);
+        });
+      }
+      selEngin.onchange = e => {
+        const selected = e.target.value;
+        row.engin = selected;
+        if (row.categorie) {
+          const match = enginsData[scope][row.categorie].find(engin => engin.nom === selected);
+          row.facteur = match ? parseNum(match.facteur) : '';
+          row.description = match ? match.description : '';
+          row.unite = match ? (match.unite || 'U') : 'U';
+          afficherDescription(row.description);
+        }
         saveAndRender();
       };
-      tdAct.appendChild(btn);
-      tr.appendChild(tdAct);
+      tdEngin.appendChild(selEngin);
+    }
+    tr.appendChild(tdEngin);
 
-      tbody.appendChild(tr);
-    });
+    // Col 4: Facteur
+    const tdFacteur = document.createElement('td');
+    if (row.mode === "manuel") {
+      const inputFacteur = document.createElement('input');
+      inputFacteur.type = "number";
+      inputFacteur.inputMode = "decimal";
+      inputFacteur.step = "any";
+      inputFacteur.min = "0";
+      inputFacteur.placeholder = row.placeholders?.facteur || "Ex. 2,75";
+      inputFacteur.className = "input-compact";
+      inputFacteur.value = row.facteur || '';
+      inputFacteur.oninput = e => { row.facteur = parseNum(e.target.value); saveAndRender(); };
+      tdFacteur.appendChild(inputFacteur);
+    } else {
+      const ro = document.createElement('input');
+      ro.type = 'text';
+      ro.readOnly = true;
+      ro.className = 'input-compact input-readonly';
+      ro.value = row.facteur || '';
+      tdFacteur.appendChild(ro);
+    }
+    tr.appendChild(tdFacteur);
 
-    // --------- Sous-total & Total ---------
-    const subtotal = rowsFiltered.reduce((acc, r) => acc + (parseNum(r.facteur) * parseNum(r.quantite)), 0);
-    const trSub = document.createElement('tr');
-    trSub.className = 'subtotal-row';
-    trSub.innerHTML = `<td colspan="6">Sous-total scope 3 (équipements)</td><td>${fmt2(subtotal)} kgCO₂e</td>`;
-    tbody.appendChild(trSub);
+    // Col 5: Quantité
+    const tdQte = document.createElement('td');
+    const inputQte = document.createElement('input');
+    inputQte.type = 'number';
+    inputQte.inputMode = "decimal";
+    inputQte.step = 'any';
+    inputQte.min = '0';
+    inputQte.placeholder = row.placeholders?.quantite || "Ex. 10";
+    inputQte.className = 'input-compact';
+    inputQte.value = row.quantite || '';
+    inputQte.oninput = e => { row.quantite = parseNum(e.target.value); saveAndRender(); };
+    tdQte.appendChild(inputQte);
+    tr.appendChild(tdQte);
 
-    const total = equipementRows.reduce((acc, r) => acc + (parseNum(r.facteur) * parseNum(r.quantite)), 0);
-    const trTot = document.createElement('tr');
-    trTot.className = 'total-row';
-    trTot.innerHTML = `<td colspan="6">Total</td><td>${fmt2(total)} kgCO₂e</td>`;
-    tbody.appendChild(trTot);
+    // Col 6: Émissions
+    const tdEm = document.createElement('td');
+    let total = 0;
 
-    // --------- Persistance + Résultat final ---------
-    sessionStorage.setItem('equipementRows', JSON.stringify(equipementRows));
+    if (row.mode === "engin") {
+      const feCarburant = { diesel: 2.68, essence: 2.31, elec: 0.075 };
+      const carburantFE = feCarburant[row.carburant] || 0;
+      const consommation = row.carburant === 'elec' ? row.puissance * row.duree : row.puissance * 0.24 * row.duree;
+      total = ((consommation * carburantFE) / (row.surface || 1)) * parseNum(row.quantite);
+    } else {
+      total = parseNum(row.facteur) * parseNum(row.quantite);
+    }
 
-    const emissionData = JSON.parse(localStorage.getItem("emissionData")) || {};
-    emissionData.equipements = total;
+    tdEm.textContent = fmt2(total);
+    tr.appendChild(tdEm);
 
-    const autresDetails = (emissionData.details || []).filter(item => item.categorie !== "Équipements");
-    const nouveauxDetails = equipementRows.map(row => ({
-      nom: row.engin || '(non renseigné)',
-      categorie: "Équipements",
-      scope: row.scope,
-      facteur: parseNum(row.facteur),
-      unite: row.unite || 'U'
-    }));
-    emissionData.details = [...autresDetails, ...nouveauxDetails];
-    localStorage.setItem("emissionData", JSON.stringify(emissionData));
-  }
+    // Col 7: Action
+    const tdAct = document.createElement('td');
+    const btn = document.createElement('button');
+    btn.className = 'action-btn';
+    btn.title = "Supprimer la ligne";
+    btn.textContent = '🗑️';
+    btn.onclick = () => {
+      equipementRows.splice(equipementRows.indexOf(row), 1);
+      afficherDescription('');
+      saveAndRender();
+    };
+    tdAct.appendChild(btn);
+    tr.appendChild(tdAct);
 
-  function addEquipementRow(scope) {
-    equipementRows.push({
-      scope,
-      mode: "predefini",
-      categorie: '',
-      engin: '',
-      description: '',
-      quantite: 0,
-      facteur: 0,
-      unite: 'U'
-    });
-    afficherDescription('');
-    saveAndRender();
-  }
-
-  function addManualRow(scope) {
-    equipementRows.push({
-      scope,
-      mode: "manuel",
-      categorie: 'manuel',
-      engin: '',
-      description: '',
-      quantite: 0,
-      facteur: 0,
-      unite: 'U',
-      _autofocus: true
-    });
-    afficherDescription('');
-    saveAndRender();
-  }
-
-  function precedent() { window.location.href = "{{ url_for('energie') }}"; }
-  function suivant() { sessionStorage.removeItem('autreRows'); window.location.href = "{{ url_for('arbres') }}"; }
-  function handleQuit() { sessionStorage.removeItem('equipementRows'); window.location.href = "/"; }
-
-  function saveAndRender() { renderTable(); }
-
-  document.addEventListener('DOMContentLoaded', () => {
-    const saved = sessionStorage.getItem('equipementRows');
-    if (saved) { equipementRows = JSON.parse(saved); }
-    renderTable();
+    tbody.appendChild(tr);
   });
+
+  // Subtotal & Total
+  const subtotal = rowsFiltered.reduce((acc, r) => {
+    if (r.mode === "engin") {
+      const feCarburant = { diesel: 2.68, essence: 2.31, elec: 0.075 };
+      const carburantFE = feCarburant[r.carburant] || 0;
+      const consommation = r.carburant === 'elec' ? r.puissance * r.duree : r.puissance * 0.24 * r.duree;
+      return acc + ((consommation * carburantFE) / (r.surface || 1)) * parseNum(r.quantite);
+    } else {
+      return acc + parseNum(r.facteur) * parseNum(r.quantite);
+    }
+  }, 0);
+
+  const trSub = document.createElement('tr');
+  trSub.className = 'subtotal-row';
+  trSub.innerHTML = `<td colspan="6">Sous-total scope 3 (équipements)</td><td>${fmt2(subtotal)} kgCO₂e</td>`;
+  tbody.appendChild(trSub);
+
+  const total = equipementRows.reduce((acc, r) => {
+    if (r.mode === "engin") {
+      const feCarburant = { diesel: 2.68, essence: 2.31, elec: 0.075 };
+      const carburantFE = feCarburant[r.carburant] || 0;
+      const consommation = r.carburant === 'elec' ? r.puissance * r.duree : r.puissance * 0.24 * r.duree;
+      return acc + ((consommation * carburantFE) / (r.surface || 1)) * parseNum(r.quantite);
+    } else {
+      return acc + parseNum(r.facteur) * parseNum(r.quantite);
+    }
+  }, 0);
+
+  const trTot = document.createElement('tr');
+  trTot.className = 'total-row';
+  trTot.innerHTML = `<td colspan="6">Total</td><td>${fmt2(total)} kgCO₂e</td>`;
+  tbody.appendChild(trTot);
+
+  // Persistence
+  sessionStorage.setItem('equipementRows', JSON.stringify(equipementRows));
+
+  const emissionData = JSON.parse(localStorage.getItem("emissionData")) || {};
+  emissionData.equipements = total;
+  const autresDetails = (emissionData.details || []).filter(item => item.categorie !== "Équipements");
+  const nouveauxDetails = equipementRows.map(row => ({
+    nom: row.engin || '(non renseigné)',
+    categorie: "Équipements",
+    scope: row.scope,
+    facteur: row.mode === "engin" ? row.facteur : parseNum(row.facteur),
+    unite: row.unite || 'U'
+  }));
+  emissionData.details = [...autresDetails, ...nouveauxDetails];
+  localStorage.setItem("emissionData", JSON.stringify(emissionData));
+}
+
+// ---------- Fonctions d'ajout ----------
+function addEquipementRow(scope) {
+  equipementRows.push({
+    scope,
+    mode: "predefini",
+    categorie: '',
+    engin: '',
+    description: '',
+    quantite: '',
+    facteur: '',
+    unite: 'U',
+    placeholders: {}
+  });
+  afficherDescription('');
+  saveAndRender();
+}
+
+function addManualRow(scope) {
+  equipementRows.push({
+    scope,
+    mode: "manuel",
+    categorie: 'manuel',
+    engin: '',
+    description: '',
+    quantite: '',
+    facteur: '',
+    unite: 'U',
+    _autofocus: true,
+    placeholders: { engin: "Nom de l'équipement", facteur: "Ex. 2,75", quantite: "Ex. 10" }
+  });
+  afficherDescription('');
+  saveAndRender();
+}
+
+function addEnginRow(scope) {
+  equipementRows.push({
+    scope,
+    mode: "engin",
+    categorie: '',
+    engin: '',
+    description: '',
+    quantite: '',
+    carburant: '',
+    puissance: '',
+    duree: '',
+    surface: '',
+    _autofocus: true,
+    placeholders: {
+      engin: "Nom de l'engin (ex: Tracteur)",
+      carburant: "Choisir carburant",
+      puissance: "Puissance (CV) ex: 75",
+      duree: "Durée d'activité (h) ex: 10",
+      surface: "Surface agricole (ha) ex: 2",
+      quantite: "Ex. 1"
+    }
+  });
+  afficherDescription('');
+  saveAndRender();
+}
+
+// ---------- Navigation ----------
+function precedent() { window.location.href = "{{ url_for('energie') }}"; }
+function suivant() { sessionStorage.removeItem('autreRows'); window.location.href = "{{ url_for('arbres') }}"; }
+function handleQuit() { sessionStorage.removeItem('equipementRows'); window.location.href = "/"; }
+
+function saveAndRender() { renderTable(); }
+
+document.addEventListener('DOMContentLoaded', () => {
+  const saved = sessionStorage.getItem('equipementRows');
+  if (saved) { equipementRows = JSON.parse(saved); }
+  renderTable();
+});
 </script>
+
+
 
 
 
