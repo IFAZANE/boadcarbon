@@ -292,19 +292,18 @@ td:nth-child(5) input {
 
 
    <div class="add-buttons">
-  <button type="button" onclick="addEquipementRow('scope_3')">➕ Ajouter équipements</button>
-      <button type="button" onclick="addEnginRow('scope_3')">➕ Ajouter Engin</button>
- <button type="button" onclick="addAppareilRow('scope_3')">➕ Ajouter Appareil</button>
+<!--  <button type="button" onclick="addEquipementRow('scope_3')">➕ Ajouter équipements</button>-->
+      <button type="button" onclick="addEnginRow('scope_3')">➕ Engins (Agriculture/BTP)</button>
+ <button type="button" onclick="addAppareilRow('scope_3')">➕ Appareil (IT/Electricité)</button>
 </div>
 
 
     <table id="equipementTable">
   <thead>
     <tr>
-      <th>Mode</th>
+      <th>Type</th>
       <th>Catégorie</th>
-      <th>Type d'équipement</th>
-      <th>Facteur (kgCO₂e/U)</th>
+      <th>Caractéristiques</th>
       <th>Quantité</th>
       <th>Émissions (kgCO₂e)</th>
       <th>Action</th>
@@ -324,13 +323,13 @@ td:nth-child(5) input {
 
 
 <script>
-const enginsData = {{ engins_equipements | tojson }};
 let equipementRows = [];
+const enginsData = {{ engins_equipements | tojson }};
 
 // ---------- Helpers ----------
 function parseNum(v) {
   if (typeof v === 'number') return v;
-  if (v === null || v === undefined || v === '') return 0;
+  if (!v) return 0;
   const n = parseFloat(String(v).replace(',', '.'));
   return isNaN(n) ? 0 : n;
 }
@@ -339,8 +338,8 @@ function fmt2(x) {
   return (x || 0).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-function afficherDescription(description) {
-  document.getElementById('enginDescription').textContent = description || '';
+function afficherDescription(desc) {
+  document.getElementById('enginDescription').textContent = desc || '';
 }
 
 function enableInputNavigation(input) {
@@ -355,6 +354,22 @@ function enableInputNavigation(input) {
       }
     }
   });
+
+  input.addEventListener("paste", e => {
+    e.preventDefault();
+    const paste = (e.clipboardData || window.clipboardData).getData('text');
+    const values = paste.split(/[\t\n]/).map(v => v.trim());
+    const inputs = Array.from(document.querySelectorAll("input, select"));
+    let idx = inputs.indexOf(e.target);
+    values.forEach(v => {
+      if (idx < inputs.length) {
+        inputs[idx].value = v;
+        if (inputs[idx].oninput) inputs[idx].oninput({ target: inputs[idx] });
+        idx++;
+      }
+    });
+  });
+
   return input;
 }
 
@@ -362,347 +377,162 @@ function enableInputNavigation(input) {
 function renderTable() {
   const tbody = document.getElementById('equipementBody');
   tbody.innerHTML = '';
-
   const scope = 'scope_3';
   const rowsFiltered = equipementRows.filter(r => r.scope === scope);
 
-  // Section title
   const trTitle = document.createElement('tr');
   trTitle.className = 'section-title';
-  const tdTitle = document.createElement('td');
-  tdTitle.colSpan = 7;
-  tdTitle.textContent = "SCOPE 3 — ÉQUIPEMENTS";
-  trTitle.appendChild(tdTitle);
+  trTitle.innerHTML = `<td colspan="6">SCOPE 3 — ÉQUIPEMENTS</td>`;
   tbody.appendChild(trTitle);
 
   rowsFiltered.forEach(row => {
     const tr = document.createElement('tr');
 
-    // Col 1: Mode
+    // Type (Engin / Appareil)
     const tdMode = document.createElement('td');
-    const chip = document.createElement('span');
-    chip.className = `chip ${
-      row.mode === 'manuel' ? 'chip-manuel' :
-      row.mode === 'engin' ? 'chip-engin' :
-      row.mode === 'appareil' ? 'chip-appareil' :
-      'chip-predef'
-    }`;
-    chip.textContent =
-      row.mode === 'manuel' ? 'Manuel' :
-      row.mode === 'engin' ? 'Engin' :
-      row.mode === 'appareil' ? 'Appareil' :
-      'Pré-défini';
-    tdMode.appendChild(chip);
+    tdMode.textContent = row.mode === "engin" ? "Engin" : "Appareil";
     tr.appendChild(tdMode);
 
-    // Col 2: Catégorie
+    // Catégorie (vide ou saisie)
     const tdCat = document.createElement('td');
-    if (["manuel", "engin", "appareil"].includes(row.mode)) {
-      tdCat.innerHTML = `<span style="color:#64748b">— (saisi ${row.mode})</span>`;
-    } else {
-      const selCat = enableInputNavigation(document.createElement('select'));
-      selCat.className = 'input-compact';
-      selCat.innerHTML = `<option value="">— Choisir une catégorie —</option>`;
-      Object.keys(enginsData[scope]).forEach(cat => {
-        const opt = document.createElement('option');
-        opt.value = cat;
-        opt.textContent = cat;
-        if (row.categorie === cat) opt.selected = true;
-        selCat.appendChild(opt);
-      });
-      selCat.onchange = e => {
-        row.categorie = e.target.value;
-        row.engin = '';
-        row.facteur = '';
-        row.description = '';
-        row.unite = 'U';
-        afficherDescription('');
-        saveAndRender();
-      };
-      tdCat.appendChild(selCat);
-    }
+    tdCat.textContent = row.mode === "engin" ? (row.type_engin || '') : '-';
     tr.appendChild(tdCat);
 
-    // Col 3: Nom + caractéristiques
+    // Caractéristiques
     const tdEngin = document.createElement('td');
 
-    if (row.mode === "predefini" || row.mode === "engin") {
-      const selectEngin = enableInputNavigation(document.createElement('select'));
-      selectEngin.className = "input-compact";
-      selectEngin.innerHTML = `<option value="">— Choisir un type d'équipement —</option>`;
-      if (row.categorie && enginsData[scope][row.categorie]) {
-        enginsData[scope][row.categorie].forEach(eng => {
-          const opt = document.createElement('option');
-          opt.value = eng.nom;
-          opt.textContent = eng.nom;
-          if (row.engin === eng.nom) opt.selected = true;
-          selectEngin.appendChild(opt);
-        });
-      }
-      selectEngin.onchange = e => {
-        row.engin = e.target.value;
-        const selectedEngin = enginsData[scope][row.categorie]?.find(eng => eng.nom === row.engin);
-        if (selectedEngin) {
-          row.facteur = selectedEngin.facteur || '';
-          row.description = selectedEngin.description || '';
-          row.unite = selectedEngin.unite || 'U';
-          afficherDescription(row.description);
-        }
-        saveAndRender();
-      };
-      tdEngin.appendChild(selectEngin);
-
-      if (row.mode === "engin") {
-        // Type Engin
-        const selectType = enableInputNavigation(document.createElement('select'));
-        selectType.className = "input-compact";
-        selectType.innerHTML = `
-          <option value="">Type d'engin</option>
-          <option value="agricole">Agricole</option>
-          <option value="btp">Construction / BTP</option>
-        `;
-        selectType.value = row.type_engin || '';
-        selectType.onchange = e => { row.type_engin = e.target.value; saveAndRender(); };
-        tdEngin.appendChild(selectType);
-
-        // Carburant
-        const selectCarburant = enableInputNavigation(document.createElement('select'));
-        selectCarburant.className = 'input-compact';
-        selectCarburant.innerHTML = `
-          <option value="">Carburant</option>
-          <option value="diesel">Diesel</option>
-          <option value="essence">Essence</option>
-          <option value="elec">Électrique</option>
-        `;
-        selectCarburant.value = row.carburant || '';
-        selectCarburant.onchange = e => { row.carburant = e.target.value; saveAndRender(); };
-        tdEngin.appendChild(selectCarburant);
-
-        // Puissance
-        const inputPuissance = enableInputNavigation(document.createElement('input'));
-        inputPuissance.type = "number";
-        inputPuissance.inputMode = "decimal";
-        inputPuissance.step = "any";
-        inputPuissance.min = "0";
-        inputPuissance.placeholder = row.placeholders?.puissance || "Puissance (CV) ou Conso (L/h)";
-        inputPuissance.className = "input-compact";
-        inputPuissance.value = row.puissance || '';
-        inputPuissance.oninput = e => { row.puissance = parseNum(e.target.value); saveAndRender(); };
-        tdEngin.appendChild(inputPuissance);
-
-        // Durée
-        const inputDuree = enableInputNavigation(document.createElement('input'));
-        inputDuree.type = "number";
-        inputDuree.inputMode = "decimal";
-        inputDuree.step = "any";
-        inputDuree.min = "0";
-        inputDuree.placeholder = row.placeholders?.duree || "Durée (h/jour)";
-        inputDuree.className = "input-compact";
-        inputDuree.value = row.duree || '';
-        inputDuree.oninput = e => { row.duree = parseNum(e.target.value); saveAndRender(); };
-        tdEngin.appendChild(inputDuree);
-
-        // Surface
-        const inputSurface = enableInputNavigation(document.createElement('input'));
-        inputSurface.type = "number";
-        inputSurface.inputMode = "decimal";
-        inputSurface.step = "any";
-        inputSurface.min = "0";
-        inputSurface.placeholder = row.placeholders?.surface || "Surface (ha, si agricole)";
-        inputSurface.className = "input-compact";
-        inputSurface.value = row.surface || '';
-        inputSurface.oninput = e => { row.surface = parseNum(e.target.value); saveAndRender(); };
-        tdEngin.appendChild(inputSurface);
-      }
-    }
-
-    if (row.mode === "manuel") {
+    if (row.mode === "engin") {
+      // Nom
       const inputNom = enableInputNavigation(document.createElement('input'));
       inputNom.type = "text";
       inputNom.className = "input-compact";
-      inputNom.placeholder = row.placeholders?.engin || "Nom de l'équipement";
+      inputNom.placeholder = "Nom de l'engin";
       inputNom.value = row.engin || '';
       inputNom.oninput = e => { row.engin = e.target.value; saveAndRender(); };
       tdEngin.appendChild(inputNom);
 
-      const inputFacteur = enableInputNavigation(document.createElement('input'));
-      inputFacteur.type = "number";
-      inputFacteur.inputMode = "decimal";
-      inputFacteur.step = "any";
-      inputFacteur.min = "0";
-      inputFacteur.placeholder = row.placeholders?.facteur || "Ex. 2,75";
-      inputFacteur.className = "input-compact";
-      inputFacteur.value = row.facteur || '';
-      inputFacteur.oninput = e => { row.facteur = parseNum(e.target.value); saveAndRender(); };
-      tdEngin.appendChild(inputFacteur);
-    }
+      // Type
+      const selectType = enableInputNavigation(document.createElement('select'));
+      selectType.className = "input-compact";
+      selectType.innerHTML = `<option value="">Type d'engin</option>
+                              <option value="agricole">Agricole</option>
+                              <option value="btp">BTP</option>`;
+      selectType.value = row.type_engin || '';
+      selectType.onchange = e => { row.type_engin = e.target.value; saveAndRender(); };
+      tdEngin.appendChild(selectType);
 
-    if (row.mode === "appareil") {
-      const inputNom = enableInputNavigation(document.createElement('input'));
-      inputNom.type = "text";
-      inputNom.className = "input-compact";
-      inputNom.placeholder = row.placeholders?.engin || "Nom de l'appareil";
-      inputNom.value = row.engin || '';
-      inputNom.oninput = e => { row.engin = e.target.value; saveAndRender(); };
-      tdEngin.appendChild(inputNom);
+      // Carburant
+      const selectCarb = enableInputNavigation(document.createElement('select'));
+      selectCarb.className = 'input-compact';
+      selectCarb.innerHTML = `<option value="">Carburant</option>
+                              <option value="diesel">Diesel</option>
+                              <option value="essence">Essence</option>
+                              <option value="elec">Électrique</option>`;
+      selectCarb.value = row.carburant || '';
+      selectCarb.onchange = e => { row.carburant = e.target.value; saveAndRender(); };
+      tdEngin.appendChild(selectCarb);
 
+      // Puissance
       const inputP = enableInputNavigation(document.createElement('input'));
-      inputP.type = "number";
-      inputP.inputMode = "decimal";
-      inputP.step = "any";
-      inputP.min = "0";
-      inputP.placeholder = row.placeholders?.puissance || "Puissance (W)";
-      inputP.className = "input-compact";
-      inputP.value = row.puissance || '';
+      inputP.type = "number"; inputP.step="any"; inputP.min="0";
+      inputP.placeholder = "Puissance (CV ou L/h)";
+      inputP.className = "input-compact"; inputP.value = row.puissance || '';
       inputP.oninput = e => { row.puissance = parseNum(e.target.value); saveAndRender(); };
       tdEngin.appendChild(inputP);
 
+      // Durée
       const inputD = enableInputNavigation(document.createElement('input'));
-      inputD.type = "number";
-      inputD.inputMode = "decimal";
-      inputD.step = "any";
-      inputD.min = "0";
-      inputD.placeholder = row.placeholders?.duree || "Durée (h/jour)";
-      inputD.className = "input-compact";
-      inputD.value = row.duree || '';
+      inputD.type = "number"; inputD.step="any"; inputD.min="0";
+      inputD.placeholder = "Durée (h)";
+      inputD.className = "input-compact"; inputD.value = row.duree || '';
       inputD.oninput = e => { row.duree = parseNum(e.target.value); saveAndRender(); };
       tdEngin.appendChild(inputD);
 
-      const inputJ = enableInputNavigation(document.createElement('input'));
-      inputJ.type = "number";
-      inputJ.inputMode = "decimal";
-      inputJ.step = "any";
-      inputJ.min = "0";
-      inputJ.placeholder = row.placeholders?.jours || "Nb de jours";
-      inputJ.className = "input-compact";
-      inputJ.value = row.jours || '';
-      inputJ.oninput = e => { row.jours = parseNum(e.target.value); saveAndRender(); };
-      tdEngin.appendChild(inputJ);
+      // Surface
+      const inputS = enableInputNavigation(document.createElement('input'));
+      inputS.type = "number"; inputS.step="any"; inputS.min="0";
+      inputS.placeholder = "Surface (ha)";
+      inputS.className = "input-compact"; inputS.value = row.surface || '';
+      inputS.oninput = e => { row.surface = parseNum(e.target.value); saveAndRender(); };
+      tdEngin.appendChild(inputS);
+    }
+
+    if (row.mode === "appareil") {
+      ["engin","puissance","duree","jours"].forEach(field => {
+        const input = enableInputNavigation(document.createElement('input'));
+        input.type = "number"; input.step="any"; input.min="0"; input.className = "input-compact";
+        input.placeholder = field==="engin" ? "Nom de l'appareil" : field==="puissance" ? "Puissance (W)" : field==="duree" ? "Durée (h/jour)" : "Nb de jours";
+        input.value = row[field] || '';
+        input.oninput = e => { row[field] = field==="engin"?e.target.value:parseNum(e.target.value); saveAndRender(); };
+        tdEngin.appendChild(input);
+      });
     }
 
     tr.appendChild(tdEngin);
 
-    // Col 4: Facteur
-    const tdFacteur = document.createElement('td');
-    const ro = document.createElement('input');
-    ro.type = 'text';
-    ro.readOnly = true;
-    ro.className = 'input-compact input-readonly';
-    ro.value = row.mode === "appareil" ? "0,58 kgCO₂/kWh" : row.facteur || '';
-    tdFacteur.appendChild(ro);
-    tr.appendChild(tdFacteur);
+    // Quantité
+    const tdQ = document.createElement('td');
+    const inputQ = enableInputNavigation(document.createElement('input'));
+    inputQ.type='number'; inputQ.step='any'; inputQ.min='0';
+    inputQ.placeholder='Ex.1'; inputQ.className='input-compact'; inputQ.value=row.quantite||'';
+    inputQ.oninput = e => { row.quantite=parseNum(e.target.value); saveAndRender(); };
+    tdQ.appendChild(inputQ); tr.appendChild(tdQ);
 
-    // Col 5: Quantité
-    const tdQte = document.createElement('td');
-    const inputQte = enableInputNavigation(document.createElement('input'));
-    inputQte.type = 'number';
-    inputQte.inputMode = "decimal";
-    inputQte.step = 'any';
-    inputQte.min = '0';
-    inputQte.placeholder = row.placeholders?.quantite || "Ex. 1";
-    inputQte.className = 'input-compact';
-    inputQte.value = row.quantite || '';
-    inputQte.oninput = e => { row.quantite = parseNum(e.target.value); saveAndRender(); };
-    tdQte.appendChild(inputQte);
-    tr.appendChild(tdQte);
+    // Émissions
+    const tdE = document.createElement('td'); tdE.textContent=fmt2(computeEmissions(row)); tr.appendChild(tdE);
 
-    // Col 6: Émissions
-    const tdEm = document.createElement('td');
-    tdEm.textContent = fmt2(computeEmissions(row));
-    tr.appendChild(tdEm);
-
-    // Col 7: Action
+    // Action
     const tdAct = document.createElement('td');
-    const btn = document.createElement('button');
-    btn.className = 'action-btn';
-    btn.title = "Supprimer la ligne";
-    btn.textContent = '🗑️';
-    btn.onclick = () => {
-      equipementRows.splice(equipementRows.indexOf(row), 1);
-      afficherDescription('');
-      saveAndRender();
-    };
-    tdAct.appendChild(btn);
-    tr.appendChild(tdAct);
+    const btn = document.createElement('button'); btn.className='action-btn'; btn.textContent='🗑️';
+    btn.onclick = () => { equipementRows.splice(equipementRows.indexOf(row),1); afficherDescription(''); saveAndRender(); };
+    tdAct.appendChild(btn); tr.appendChild(tdAct);
 
     tbody.appendChild(tr);
   });
 
-  // Sous-total
-  const subtotal = rowsFiltered.reduce((acc, r) => acc + computeEmissions(r), 0);
-  const trSub = document.createElement('tr');
-  trSub.className = 'subtotal-row';
-  trSub.innerHTML = `<td colspan="6">Sous-total scope 3 (équipements)</td><td>${fmt2(subtotal)} kgCO₂e</td>`;
+  // Sous-total & Total
+  const subtotal = rowsFiltered.reduce((acc,r)=>acc+computeEmissions(r),0);
+  const trSub = document.createElement('tr'); trSub.className='subtotal-row';
+  trSub.innerHTML=`<td colspan="5">Sous-total scope 3 (équipements)</td><td>${fmt2(subtotal)} kgCO₂e</td>`;
   tbody.appendChild(trSub);
 
-  // Total
-  const total = equipementRows.reduce((acc, r) => acc + computeEmissions(r), 0);
-  const trTot = document.createElement('tr');
-  trTot.className = 'total-row';
-  trTot.innerHTML = `<td colspan="6">Total</td><td>${fmt2(total)} kgCO₂e</td>`;
+  const total = equipementRows.reduce((acc,r)=>acc+computeEmissions(r),0);
+  const trTot = document.createElement('tr'); trTot.className='total-row';
+  trTot.innerHTML=`<td colspan="5">Total</td><td>${fmt2(total)} kgCO₂e</td>`;
   tbody.appendChild(trTot);
 
-  // Sauvegarde
   sessionStorage.setItem('equipementRows', JSON.stringify(equipementRows));
-  const emissionData = JSON.parse(localStorage.getItem("emissionData")) || {};
+  const emissionData = JSON.parse(localStorage.getItem("emissionData"))||{};
   emissionData.equipements = total;
-  const autresDetails = (emissionData.details || []).filter(item => item.categorie !== "Équipements");
-  const nouveauxDetails = equipementRows.map(row => ({
-    nom: row.engin || '(non renseigné)',
-    categorie: "Équipements",
-    scope: row.scope,
-    facteur: parseNum(row.mode === "appareil" ? 0.58 : row.facteur),
-    unite: row.unite || 'U'
-  }));
-  emissionData.details = [...autresDetails, ...nouveauxDetails];
-  localStorage.setItem("emissionData", JSON.stringify(emissionData));
+  const autresDetails = (emissionData.details||[]).filter(i=>i.categorie!=="Équipements");
+  emissionData.details=[...autresDetails, ...equipementRows.map(r=>({nom:r.engin||'(non renseigné)', categorie:"Équipements", scope:r.scope, facteur:r.mode==="appareil"?0.58:parseNum(r.facteur), unite:r.unite||'U'}))];
+  localStorage.setItem("emissionData",JSON.stringify(emissionData));
 }
 
 // ---------- Compute Emissions ----------
-function computeEmissions(row) {
-  let total = 0;
-  if (row.mode === "engin") {
-    const feCarburant = { diesel: 2.68, essence: 2.31, elec: 0.075 };
-    const carburantFE = feCarburant[row.carburant] || 0;
-    if (row.type_engin === "agricole") {
-      const consommation = row.carburant === 'elec' ? row.puissance * row.duree : row.puissance * 0.24 * row.duree;
-      total = ((consommation * carburantFE) / (row.surface || 1)) * parseNum(row.quantite);
-    } else if (row.type_engin === "btp") {
-      const consommation = row.puissance * row.duree;
-      total = (consommation * carburantFE) * parseNum(row.quantite);
-    }
-  } else if (row.mode === "appareil") {
-    const kWh = (parseNum(row.puissance)/1000) * parseNum(row.duree) * parseNum(row.jours);
-    total = kWh * 0.58 * parseNum(row.quantite);
-  } else {
-    total = parseNum(row.facteur) * parseNum(row.quantite);
-  }
+function computeEmissions(row){
+  let total=0;
+  if(row.mode==="engin"){
+    const feCarb={diesel:2.68,essence:2.31,elec:0.075};
+    const cFE=feCarb[row.carburant]||0;
+    if(row.type_engin==="agricole"){const con=row.carburant==='elec'?row.puissance*row.duree:row.puissance*0.24*row.duree; total = (con * cFE) * (row.surface || 1) * parseNum(row.quantite);
+;}
+    else if(row.type_engin==="btp"){total=(row.puissance*row.duree*cFE)*parseNum(row.quantite);}
+  } else if(row.mode==="appareil"){total=(parseNum(row.puissance)/1000)*parseNum(row.duree)*parseNum(row.jours)*0.58*parseNum(row.quantite);}
   return total;
 }
 
-// ---------- Ajouter lignes ----------
-function addEquipementRow(scope) { equipementRows.push({ scope, mode: "predefini", categorie: '', engin: '', description: '', quantite: '', facteur: '', unite: 'U', _autofocus: true }); saveAndRender(); }
-function addManualRow(scope) { equipementRows.push({ scope, mode: "manuel", categorie: 'manuel', engin: '', description: '', quantite: '', facteur: '', unite: 'U', _autofocus: true, placeholders: { engin: "Nom de l'équipement", facteur: "Ex. 2,75", quantite: "Ex. 10" } }); saveAndRender(); }
-function addEnginRow(scope) { equipementRows.push({ scope, mode: "engin", categorie: '', engin: '', description: '', quantite: '', carburant: '', type_engin: '', puissance: '', duree: '', surface: '', _autofocus: true, placeholders: { engin: "Nom de l'engin (ex: Tracteur ou Bulldozer)", carburant: "Choisir carburant", puissance: "Puissance (CV) ou Conso (L/h)", duree: "Durée (h)", surface: "Surface agricole (ha, si agricole)", quantite: "Ex. 1" } }); saveAndRender(); }
-function addAppareilRow(scope) {
-  equipementRows.push({ scope, mode: "appareil", engin: '', puissance: '', duree: '', jours: '', quantite: '', facteur: 0, unite: 'kWh', _autofocus: true, placeholders: { engin: "Nom de l'appareil (ex: Téléviseur)", puissance: "Puissance (W)", duree: "Durée (h/jour)", jours: "Nb de jours", quantite: "Ex. 1" } });
-  saveAndRender();
-}
+// ---------- Add Rows ----------
+function addEnginRow(scope){equipementRows.push({scope,mode:"engin",categorie:'',engin:'',quantite:'',carburant:'',type_engin:'',puissance:'',duree:'',surface:'',_autofocus:true,placeholders:{engin:"Nom de l'engin",carburant:"Choisir carburant",puissance:"Puissance (CV ou L/h)",duree:"Durée (h)",surface:"Surface (ha)",quantite:"Ex.1"}});saveAndRender();}
+function addAppareilRow(scope){equipementRows.push({scope,mode:"appareil",engin:'',puissance:'',duree:'',jours:'',quantite:'',unite:'kWh',_autofocus:true,placeholders:{engin:"Nom de l'appareil",puissance:"Puissance (W)",duree:"Durée (h/jour)",jours:"Nb de jours",quantite:"Ex.1"}});saveAndRender();}
 
 // ---------- Navigation ----------
-function precedent() { window.location.href = "{{ url_for('energie') }}"; }
-function suivant() { sessionStorage.removeItem('autreRows'); window.location.href = "{{ url_for('arbres') }}"; }
-function handleQuit() { sessionStorage.removeItem('equipementRows'); window.location.href = "/"; }
+function precedent(){window.location.href="{{ url_for('energie') }}";}
+function suivant(){sessionStorage.removeItem('autreRows');window.location.href="{{ url_for('arbres') }}";}
+function saveAndRender(){renderTable();}
 
-function saveAndRender() { renderTable(); }
-
-document.addEventListener('DOMContentLoaded', () => {
-  const saved = sessionStorage.getItem('equipementRows');
-  if (saved) equipementRows = JSON.parse(saved);
-  renderTable();
-});
+document.addEventListener('DOMContentLoaded',()=>{const saved=sessionStorage.getItem('equipementRows');if(saved)equipementRows=JSON.parse(saved);renderTable();});
 </script>
-
 
 
 
