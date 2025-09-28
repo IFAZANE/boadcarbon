@@ -399,125 +399,118 @@
 </div>
 
 <script>
-  async function loadData() {
-    const raw = localStorage.getItem("emissionData");
-    if (!raw) {
-      alert("Aucune donnée d'émission trouvée.");
-      return;
-    }
-    let data;
+async function loadData() {
+  // --- Données générales depuis localStorage ---
+  const raw = localStorage.getItem("emissionData");
+  let data = {};
+  if (raw) {
     try {
       data = JSON.parse(raw);
-    } catch (e) {
-      alert("Erreur lors du chargement des données.");
-      console.error(e);
-      return;
-    }
-
-    const details = Array.isArray(data.details) ? data.details : [];
-    if (details.length === 0) {
-      alert("Aucune donnée détaillée disponible.");
-      return;
-    }
-
-    // Totaux par catégorie
-    const categorieTotals = {
-      "Transport": parseFloat(data.transport) || 0,
-      "Énergie": parseFloat(data.energie) || 0,
-      "Équipements": parseFloat(data.equipements) || 0,
-      "Total compensation": parseFloat(data.arbres) || 0
-    };
-
-    // Affichage résumé
-    const tbody = document.getElementById("summary-table");
-    tbody.innerHTML = "";
-    let total = 0, compensation = 0;
-
-    Object.entries(categorieTotals).forEach(([label, value]) => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `<td>${label}</td><td>${value.toFixed(2)} kgCO₂e</td>`;
-      tbody.appendChild(tr);
-
-      if (label === "Total compensation") {
-        compensation = value;
-      } else {
-        total += value;
-      }
-    });
-
-    // Correction : calcul de l'émission nette
-    let totalNet = total - compensation;
-    document.getElementById("emission-brute").innerHTML =
-      `<strong>${total.toFixed(2)} kgCO₂e</strong>`;
-    document.getElementById("emission-compensee").innerHTML =
-      `<strong>− ${compensation.toFixed(2)} kgCO₂e</strong>`;
-    document.getElementById("emission-nette").innerHTML =
-      `<strong>= ${totalNet.toFixed(2)} kgCO₂e</strong>`;
-
-    // Graphique
-    const baseColors = ["#004B87", "#006837", "#f0ad4e"];
-    const categorieColors = Object.keys(categorieTotals).map((_, i) => baseColors[i % baseColors.length]);
-
-    new Chart(document.getElementById("emissionChartDoughnut"), {
-      type: "doughnut",
-      data: {
-        labels: Object.keys(categorieTotals),
-        datasets: [{
-          data: Object.values(categorieTotals),
-          backgroundColor: categorieColors,
-          borderWidth: 1,
-          borderColor: "#fff"
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: { position: 'bottom' },
-          tooltip: { enabled: true }
-        }
-      }
-    });
-
-    // Détails
-    const detailBody = document.getElementById("details-table");
-    detailBody.innerHTML = "";
-    details.forEach(item => {
-      const facteur = item.facteur !== undefined ? parseFloat(item.facteur) : null;
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${item.nom || "-"}</td>
-        <td>${item.categorie || "-"}</td>
-        <td>${item.scope || "-"}</td>
-        <td>${facteur !== null && !isNaN(facteur) ? facteur.toFixed(6) : "-"}</td>
-        <td>${item.unite || "-"}</td>
-      `;
-      detailBody.appendChild(tr);
-    });
+    } catch (e) { console.error("Erreur parsing emissionData", e); }
   }
 
-  function downloadPDF() {
-    const element = document.getElementById("report");
-    if (!element) {
-      alert("Le contenu du rapport est introuvable.");
-      return;
-    }
-    html2pdf().set({
-      margin: 0.5,
-      filename: "rapport_emissions_boad.pdf",
-      html2canvas: { scale: 2, logging: false },
-      jsPDF: { unit: "in", format: "a4", orientation: "portrait" }
-    }).from(element).save();
-  }
+  // --- Totaux par catégorie ---
+  let categorieTotals = {
+    "Transport": parseFloat(data.transport) || 0,
+    "Énergie": parseFloat(data.energie) || 0,
+    "Équipements": 0,  // On va compléter depuis sessionStorage
+    "Total compensation": parseFloat(data.arbres) || 0
+  };
 
-  function clearAndQuit() {
-    if (confirm("Voulez-vous vraiment quitter et effacer toutes les données locales ?")) {
-      localStorage.clear();
-      window.location.href = "/";
-    }
-  }
+  // --- Détails équipements depuis sessionStorage ---
+  let equipementTotals = { subtotalEngin: 0, subtotalAppareil: 0, totalGeneral: 0 };
+  let equipementRows = [];
+  const storedEquip = sessionStorage.getItem('equipementRows');
+  const storedTotals = sessionStorage.getItem('equipementTotals');
+  if (storedEquip) equipementRows = JSON.parse(storedEquip);
+  if (storedTotals) equipementTotals = JSON.parse(storedTotals);
 
-  window.onload = loadData;
+  categorieTotals["Équipements"] = equipementTotals.totalGeneral || 0;
+
+  // --- Affichage résumé ---
+  const tbody = document.getElementById("summary-table");
+  tbody.innerHTML = "";
+  let total = 0, compensation = 0;
+
+  Object.entries(categorieTotals).forEach(([label, value]) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${label}</td><td>${value.toFixed(2)} kgCO₂e</td>`;
+    tbody.appendChild(tr);
+
+    if (label === "Total compensation") compensation = value;
+    else total += value;
+  });
+
+  const totalNet = total - compensation;
+  document.getElementById("emission-brute").innerHTML = `<strong>${total.toFixed(2)} kgCO₂e</strong>`;
+  document.getElementById("emission-compensee").innerHTML = `<strong>− ${compensation.toFixed(2)} kgCO₂e</strong>`;
+  document.getElementById("emission-nette").innerHTML = `<strong>= ${totalNet.toFixed(2)} kgCO₂e</strong>`;
+
+  // --- Graphique ---
+  const baseColors = ["#004B87", "#006837", "#f0ad4e"];
+  const categorieColors = Object.keys(categorieTotals).map((_, i) => baseColors[i % baseColors.length]);
+
+  new Chart(document.getElementById("emissionChartDoughnut"), {
+    type: "doughnut",
+    data: {
+      labels: Object.keys(categorieTotals),
+      datasets: [{ data: Object.values(categorieTotals), backgroundColor: categorieColors, borderWidth: 1, borderColor: "#fff" }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { position: 'bottom' }, tooltip: { enabled: true } }
+    }
+  });
+
+  // --- Détails équipements ---
+  const detailBody = document.getElementById("details-table");
+  detailBody.innerHTML = "";
+
+  // Ajout des lignes d'équipements
+  equipementRows.forEach(row => {
+    const emission = row.mode === "engin" ? equipementTotals.subtotalEngin : equipementTotals.subtotalAppareil;
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${row.engin || "-"}</td>
+      <td>${row.type_engin || (row.mode==="appareil" ? "Appareil" : "-")}</td>
+      <td>${row.scope || "-"}</td>
+      <td>${emission ? emission.toFixed(2) : "-"}</td>
+      <td>${row.mode==="engin" ? row.carburant || "-" : row.unite || "-"}</td>
+    `;
+    detailBody.appendChild(tr);
+  });
+
+  // Si tu veux, on peut aussi ajouter une ligne **sous-total** pour Engins et Appareils
+  const subtotalEnginTr = document.createElement("tr");
+  subtotalEnginTr.innerHTML = `<td colspan="3"><b>Sous-total Engins</b></td><td colspan="2">${equipementTotals.subtotalEngin.toFixed(2)}</td>`;
+  detailBody.appendChild(subtotalEnginTr);
+
+  const subtotalAppTr = document.createElement("tr");
+  subtotalAppTr.innerHTML = `<td colspan="3"><b>Sous-total Appareils</b></td><td colspan="2">${equipementTotals.subtotalAppareil.toFixed(2)}</td>`;
+  detailBody.appendChild(subtotalAppTr);
+
+  const totalEquipTr = document.createElement("tr");
+  totalEquipTr.innerHTML = `<td colspan="3"><b>Total Équipements</b></td><td colspan="2">${equipementTotals.totalGeneral.toFixed(2)}</td>`;
+  detailBody.appendChild(totalEquipTr);
+}
+
+function downloadPDF() {
+  const element = document.getElementById("report");
+  if (!element) { alert("Le contenu du rapport est introuvable."); return; }
+  html2pdf().set({ margin:0.5, filename:"rapport_emissions_boad.pdf", html2canvas:{ scale:2, logging:false }, jsPDF:{ unit:"in", format:"a4", orientation:"portrait" } }).from(element).save();
+}
+
+function clearAndQuit() {
+  if (confirm("Voulez-vous vraiment quitter et effacer toutes les données locales ?")) {
+    localStorage.clear();
+    sessionStorage.clear();
+    window.location.href = "/";
+  }
+}
+
+window.onload = loadData;
 </script>
+
 
 
 <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
