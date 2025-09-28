@@ -262,8 +262,8 @@
     <h2>Transport</h2>
     <div class="add-buttons">
       <button type="button" onclick="addTransportRow('scope_1')">➕ Ajouter Scope 1</button>
-      <button type="button" onclick="addTransportRow('scope_2')">➕ Ajouter Scope 2</button>
       <button type="button" onclick="addTransportRow('scope_3')">➕ Ajouter Scope 3</button>
+      <button type="button" onclick="addVehiculeRow('scope_2')">➕ Ajouter Véhicule</button>
     </div>
 
     <table id="transportTable">
@@ -289,210 +289,47 @@
   </main>
 
 
-
 <script>
 let enginsData = {{ engins_json | safe }};
 let transportRows = [];
-const scopes = Object.keys(enginsData);
+const scopes = ["scope_1", "scope_2", "scope_3"];
 
+// ---------- Helpers ----------
 function afficherDescription(description) {
   const divDesc = document.getElementById('enginDescription');
   divDesc.textContent = description || '';
 }
 
-function renderTable() {
-  const tbody = document.getElementById('transportBody');
-  tbody.innerHTML = '';
+function saveAndRender() { renderTable(); }
 
-  scopes.forEach(scope => {
-    const trTitle = document.createElement('tr');
-    trTitle.className = 'section-title';
-    const tdTitle = document.createElement('td');
-    tdTitle.colSpan = 7;
-    tdTitle.textContent = scope.charAt(0).toUpperCase() + scope.slice(1).replace('_', ' ');
-    trTitle.appendChild(tdTitle);
-    tbody.appendChild(trTitle);
+function focusNextInput(current, backwards=false) {
+  const inputs = Array.from(document.querySelectorAll('input, select'));
+  const idx = inputs.indexOf(current);
+  if (idx !== -1) {
+    const next = backwards ? inputs[idx - 1] : inputs[idx + 1];
+    if (next) next.focus();
+  }
+}
 
-    const rowsFiltered = transportRows.filter(r => r.scope === scope);
-    rowsFiltered.forEach(row => {
-      const tr = document.createElement('tr');
-
-      // Type de transport
-      const tdType = document.createElement('td');
-      const selectTypeTransport = document.createElement('select');
-      selectTypeTransport.innerHTML = `
-        <option value="personne" ${row.typeTransport === 'personne' ? 'selected' : ''}>Personnes</option>
-        <option value="marchandise" ${row.typeTransport === 'marchandise' ? 'selected' : ''}>Marchandises</option>
-      `;
-      selectTypeTransport.onchange = e => {
-        row.typeTransport = e.target.value;
-        row.categorie = '';
-        row.engin = '';
-        row.facteur = 0;
-        afficherDescription('');
-        saveAndRender();
-      };
-      tdType.appendChild(selectTypeTransport);
-      tr.appendChild(tdType);
-
-      // Catégorie d'engin
-      const tdEnginType = document.createElement('td');
-      const selectEnginType = document.createElement('select');
-      selectEnginType.innerHTML = `<option value="">-- Choisir une catégorie --</option>`;
-      if (enginsData[scope] && enginsData[scope][row.typeTransport]) {
-        Object.keys(enginsData[scope][row.typeTransport]).forEach(cat => {
-          const opt = document.createElement('option');
-          opt.value = cat;
-          opt.textContent = cat;
-          if (cat === row.categorie) opt.selected = true;
-          selectEnginType.appendChild(opt);
-        });
-      }
-      selectEnginType.onchange = e => {
-        row.categorie = e.target.value;
-        row.engin = '';
-        row.facteur = 0;
-        row.type_engin_id = null;
-        afficherDescription('');
-        saveAndRender();
-      };
-      tdEnginType.appendChild(selectEnginType);
-      tr.appendChild(tdEnginType);
-
-      // Choix de l'engin
-      const tdEngin = document.createElement('td');
-      const selectEngin = document.createElement('select');
-      selectEngin.innerHTML = `<option value="">-- Choisir un engin --</option>`;
-      if (
-        row.categorie &&
-        enginsData[scope] &&
-        enginsData[scope][row.typeTransport] &&
-        enginsData[scope][row.typeTransport][row.categorie]
-      ) {
-        enginsData[scope][row.typeTransport][row.categorie].forEach(enginObj => {
-          const opt = document.createElement('option');
-          opt.value = enginObj.nom;
-          opt.textContent = enginObj.nom;
-          if (enginObj.nom === row.engin) opt.selected = true;
-          selectEngin.appendChild(opt);
-        });
-      }
-      selectEngin.onchange = e => {
-        const selectedNom = e.target.value;
-        row.engin = selectedNom;
-        if (
-          row.categorie &&
-          enginsData[scope] &&
-          enginsData[scope][row.typeTransport] &&
-          enginsData[scope][row.typeTransport][row.categorie]
-        ) {
-          const eng = enginsData[scope][row.typeTransport][row.categorie].find(en => en.nom === selectedNom);
-          row.facteur = eng ? eng.facteur : 0;
-          row.description = eng ? eng.description : '';
-          row.type_engin_id = eng ? eng.id : null;
-          afficherDescription(row.description);
-        }
-        saveAndRender();
-      };
-      tdEngin.appendChild(selectEngin);
-      tr.appendChild(tdEngin);
-
-      // Nombre
-      const tdNombre = document.createElement('td');
-      const inputNombre = document.createElement('input');
-      inputNombre.type = 'number';
-      inputNombre.min = '1';
-      inputNombre.value = row.nombre || 1;
-      inputNombre.style.width = '70px';
-      inputNombre.oninput = e => {
-        const val = parseInt(e.target.value);
-        row.nombre = val > 0 ? val : 1;
-        sessionStorage.setItem('transportRows', JSON.stringify(transportRows));
-      };
-      inputNombre.onblur = () => saveAndRender();
-      tdNombre.appendChild(inputNombre);
-      tr.appendChild(tdNombre);
-
-      // Distance
-      const tdDistance = document.createElement('td');
-      const inputDistance = document.createElement('input');
-      inputDistance.type = 'number';
-      inputDistance.min = '0';
-      inputDistance.step = '0.1';
-      inputDistance.value = row.distance || 0;
-      inputDistance.style.width = '100px';
-      inputDistance.oninput = e => {
-        const val = parseFloat(e.target.value);
-        row.distance = val >= 0 ? val : 0;
-        sessionStorage.setItem('transportRows', JSON.stringify(transportRows));
-      };
-      inputDistance.onblur = () => saveAndRender();
-      tdDistance.appendChild(inputDistance);
-      tr.appendChild(tdDistance);
-
-      // Émissions
-      const tdEmissions = document.createElement('td');
-      const emissions = (row.facteur || 0) * (row.distance || 0) * (row.nombre || 1);
-      tdEmissions.textContent = emissions.toFixed(2);
-      tr.appendChild(tdEmissions);
-
-      // Action (supprimer)
-      const tdAction = document.createElement('td');
-      const btnDelete = document.createElement('button');
-      btnDelete.className = 'action-btn';
-      btnDelete.title = 'Supprimer cette ligne';
-      btnDelete.textContent = '🗑️';
-      btnDelete.onclick = () => {
-        transportRows.splice(transportRows.indexOf(row), 1);
-        afficherDescription('');
-        saveAndRender();
-      };
-      tdAction.appendChild(btnDelete);
-      tr.appendChild(tdAction);
-
-      tbody.appendChild(tr);
-    });
-
-    // Sous-total
-    const sousTotal = rowsFiltered.reduce((acc, r) => acc + ((r.facteur || 0) * (r.distance || 0) * (r.nombre || 1)), 0);
-    const trSubtotal = document.createElement('tr');
-    trSubtotal.className = 'subtotal-row ' + scope.replace(' ', '-');
-    trSubtotal.innerHTML = `<td colspan="5">Sous-total ${scope.charAt(0).toUpperCase() + scope.slice(1).replace('_', ' ')}</td><td colspan="2"><span>${sousTotal.toFixed(2)}</span> kgCO₂e</td>`;
-    tbody.appendChild(trSubtotal);
+// ---------- Ajouter un véhicule ----------
+function addVehiculeRow(scope) {
+  transportRows.push({
+    scope,
+    mode: "vehicule",
+    nom: "",
+    carburant: "diesel",
+    conso: 0,
+    distance: 0,
+    nombre: 1
   });
-
-  // Total global
-  const total = transportRows.reduce((acc, r) => acc + ((r.facteur || 0) * (r.distance || 0) * (r.nombre || 1)), 0);
-  const trTotal = document.createElement('tr');
-  trTotal.className = 'total-row';
-  trTotal.innerHTML = `<td colspan="5">Total</td><td colspan="2"><span>${total.toFixed(2)}</span> kgCO₂e</td>`;
-  tbody.appendChild(trTotal);
-
-  // Stockage
-  sessionStorage.setItem('transportRows', JSON.stringify(transportRows.map(row => ({
-    ...row,
-    type_engin_id: row.type_engin_id || null
-  }))));
-
-  const emissionData = JSON.parse(localStorage.getItem("emissionData")) || {};
-  emissionData.transport = total;
-  const autresDetails = (emissionData.details || []).filter(item => item.categorie !== "Transport");
-  const nouveauxDetails = transportRows.map(row => ({
-    nom: row.engin || "",
-    categorie: "Transport",
-    scope: row.scope || "",
-    facteur: row.facteur || 0,
-    unite: "kg/km",
-    id: row.type_engin_id || null
-  }));
-  emissionData.details = [...autresDetails, ...nouveauxDetails];
-  localStorage.setItem("emissionData", JSON.stringify(emissionData));
+  saveAndRender();
+  setTimeout(() => {
+    const lastRowInputs = document.querySelectorAll('#transportBody tr:last-child input, #transportBody tr:last-child select');
+    if (lastRowInputs.length > 0) lastRowInputs[0].focus();
+  }, 50);
 }
 
-function initTransportRows() {
-  ["scope_1", "scope_2", "scope_3"].forEach(scope => addTransportRow(scope));
-}
-
+// ---------- Ajouter un engin classique ----------
 function addTransportRow(scope) {
   transportRows.push({
     typeTransport: 'personne',
@@ -503,50 +340,227 @@ function addTransportRow(scope) {
     description: '',
     nombre: 1,
     distance: 0,
-    type_engin_id: null
+    type_engin_id: null,
+    mode: "engin"
   });
   afficherDescription('');
   saveAndRender();
 }
 
+// ---------- Rendu du tableau ----------
+function renderTable() {
+  const tbody = document.getElementById('transportBody');
+  tbody.innerHTML = '';
+
+  scopes.forEach(scope => {
+    const trTitle = document.createElement('tr');
+    trTitle.className = 'section-title';
+    const tdTitle = document.createElement('td');
+    tdTitle.colSpan = 7;
+    tdTitle.textContent = scope === "scope_2" ? "Véhicules" : scope.charAt(0).toUpperCase() + scope.slice(1).replace('_', ' ');
+    trTitle.appendChild(tdTitle);
+    tbody.appendChild(trTitle);
+
+    const rowsFiltered = transportRows.filter(r => r.scope === scope);
+
+    rowsFiltered.forEach(row => {
+      const tr = document.createElement('tr');
+
+      if (row.mode === "vehicule") {
+        // VEHICULE
+        const makeInput = (type, placeholder, value, onChange) => {
+          const input = document.createElement('input');
+          input.type = type;
+          input.placeholder = placeholder;
+          input.value = value || '';
+          input.oninput = e => { onChange(e.target.value); sessionStorage.setItem('transportRows', JSON.stringify(transportRows)); };
+          input.onblur = () => saveAndRender();
+          input.addEventListener("keydown", e => {
+            if (e.key === "Enter") { e.preventDefault(); focusNextInput(e.target, e.shiftKey); }
+          });
+          return input;
+        };
+
+        // Nom
+        const tdNom = document.createElement('td');
+        tdNom.appendChild(makeInput("text", "Nom du véhicule", row.nom, v => row.nom = v));
+        tr.appendChild(tdNom);
+
+        // Carburant
+        const tdCarb = document.createElement('td');
+        const selectCarburant = document.createElement('select');
+        ["diesel", "essence", "gpl", "electrique"].forEach(c => {
+          const opt = document.createElement("option");
+          opt.value = c;
+          opt.textContent = c.charAt(0).toUpperCase() + c.slice(1);
+          if (row.carburant === c) opt.selected = true;
+          selectCarburant.appendChild(opt);
+        });
+        selectCarburant.onchange = e => { row.carburant = e.target.value; saveAndRender(); };
+        selectCarburant.addEventListener("keydown", e => { if(e.key==="Enter"){e.preventDefault();focusNextInput(e.target,e.shiftKey);} });
+        tdCarb.appendChild(selectCarburant);
+        tr.appendChild(tdCarb);
+
+        // Conso
+        const tdConso = document.createElement('td');
+        tdConso.appendChild(makeInput("number", "Conso (L/100km ou kWh/100km)", row.conso, v => row.conso = parseFloat(v)||0));
+        tr.appendChild(tdConso);
+
+        // Distance
+        const tdDist = document.createElement('td');
+        tdDist.appendChild(makeInput("number", "Distance (km)", row.distance, v => row.distance = parseFloat(v)||0));
+        tr.appendChild(tdDist);
+
+        // Nombre
+        const tdNb = document.createElement('td');
+        tdNb.appendChild(makeInput("number", "Nb véhicules", row.nombre, v => row.nombre = parseInt(v)||1));
+        tr.appendChild(tdNb);
+
+        // Émissions
+        const tdEm = document.createElement('td');
+        const fe = { diesel: 2.68, essence: 2.31, gpl: 1.60, electrique: 0.233 };
+        let emissions = 0;
+        if (row.carburant === "electrique") {
+          emissions = ((row.conso * row.distance * row.nombre)/100) * fe.electrique;
+        } else {
+          emissions = ((row.conso * row.distance * row.nombre)/100) * fe[row.carburant];
+        }
+        tdEm.textContent = emissions.toFixed(2);
+        tr.appendChild(tdEm);
+
+        // Supprimer
+        const tdAction = document.createElement('td');
+        const btnDelete = document.createElement('button');
+        btnDelete.className = 'action-btn';
+        btnDelete.textContent = '🗑️';
+        btnDelete.onclick = () => { transportRows.splice(transportRows.indexOf(row),1); saveAndRender(); };
+        tdAction.appendChild(btnDelete);
+        tr.appendChild(tdAction);
+
+        tbody.appendChild(tr);
+        return;
+      }
+
+      // ---------- MODE ENGIN ----------
+      // Type Transport
+      const tdType = document.createElement('td');
+      const selectTypeTransport = document.createElement('select');
+      selectTypeTransport.innerHTML = `
+        <option value="personne" ${row.typeTransport==='personne'?'selected':''}>Personnes</option>
+        <option value="marchandise" ${row.typeTransport==='marchandise'?'selected':''}>Marchandises</option>
+      `;
+      selectTypeTransport.onchange = e => { row.typeTransport = e.target.value; row.categorie=''; row.engin=''; row.facteur=0; afficherDescription(''); saveAndRender(); };
+      tdType.appendChild(selectTypeTransport);
+      tr.appendChild(tdType);
+
+      // Catégorie
+      const tdCat = document.createElement('td');
+      const selectCat = document.createElement('select');
+      selectCat.innerHTML = `<option value="">-- Choisir une catégorie --</option>`;
+      if(enginsData[scope] && enginsData[scope][row.typeTransport]) {
+        Object.keys(enginsData[scope][row.typeTransport]).forEach(cat=>{
+          const opt = document.createElement('option'); opt.value=cat; opt.textContent=cat;
+          if(cat===row.categorie) opt.selected=true;
+          selectCat.appendChild(opt);
+        });
+      }
+      selectCat.onchange = e => { row.categorie=e.target.value; row.engin=''; row.facteur=0; row.type_engin_id=null; afficherDescription(''); saveAndRender(); };
+      tdCat.appendChild(selectCat);
+      tr.appendChild(tdCat);
+
+      // Engin
+      const tdEng = document.createElement('td');
+      const selectEng = document.createElement('select');
+      selectEng.innerHTML=`<option value="">-- Choisir un engin --</option>`;
+      if(row.categorie && enginsData[scope] && enginsData[scope][row.typeTransport] && enginsData[scope][row.typeTransport][row.categorie]){
+        enginsData[scope][row.typeTransport][row.categorie].forEach(engObj=>{
+          const opt=document.createElement('option'); opt.value=engObj.nom; opt.textContent=engObj.nom;
+          if(engObj.nom===row.engin) opt.selected=true;
+          selectEng.appendChild(opt);
+        });
+      }
+      selectEng.onchange = e => {
+        const sel = e.target.value; row.engin=sel;
+        const eng = enginsData[scope][row.typeTransport][row.categorie].find(en=>en.nom===sel);
+        if(eng){ row.facteur=eng.facteur; row.description=eng.description; row.type_engin_id=eng.id; afficherDescription(row.description); }
+        saveAndRender();
+      };
+      tdEng.appendChild(selectEng);
+      tr.appendChild(tdEng);
+
+      // Nombre
+      const tdNb = document.createElement('td');
+      const inputNb=document.createElement('input'); inputNb.type='number'; inputNb.min='1'; inputNb.value=row.nombre||1; inputNb.style.width='70px';
+      inputNb.oninput=e=>{ row.nombre=parseInt(e.target.value)||1; sessionStorage.setItem('transportRows',JSON.stringify(transportRows)); };
+      inputNb.onblur=()=>saveAndRender();
+      tdNb.appendChild(inputNb);
+      tr.appendChild(tdNb);
+
+      // Distance
+      const tdDist=document.createElement('td');
+      const inputDist=document.createElement('input'); inputDist.type='number'; inputDist.min='0'; inputDist.step='0.1'; inputDist.value=row.distance||0; inputDist.style.width='100px';
+      inputDist.oninput=e=>{ row.distance=parseFloat(e.target.value)||0; sessionStorage.setItem('transportRows',JSON.stringify(transportRows)); };
+      inputDist.onblur=()=>saveAndRender();
+      tdDist.appendChild(inputDist);
+      tr.appendChild(tdDist);
+
+      // Émissions
+      const tdEm=document.createElement('td'); tdEm.textContent=((row.facteur||0)*(row.distance||0)*(row.nombre||1)).toFixed(2);
+      tr.appendChild(tdEm);
+
+      // Supprimer
+      const tdAction=document.createElement('td'); const btnDel=document.createElement('button'); btnDel.className='action-btn'; btnDel.textContent='🗑️';
+      btnDel.onclick=()=>{ transportRows.splice(transportRows.indexOf(row),1); afficherDescription(''); saveAndRender(); };
+      tdAction.appendChild(btnDel); tr.appendChild(tdAction);
+
+      tbody.appendChild(tr);
+    });
+
+    // Sous-total
+    const sousTotal=rowsFiltered.reduce((acc,r)=>{
+      if(r.mode==="vehicule"){
+        if(r.carburant==="electrique") return acc+((r.conso*r.distance*r.nombre)/100*0.233);
+        else return acc+((r.conso*r.distance*r.nombre)/100*{diesel:2.68,essence:2.31,gpl:1.6}[r.carburant]);
+      } else return acc+((r.facteur||0)*(r.distance||0)*(r.nombre||1));
+    },0);
+    const trSubtotal=document.createElement('tr'); trSubtotal.className='subtotal-row '+scope.replace(' ','-');
+    trSubtotal.innerHTML=`<td colspan="5">Sous-total ${scope==="scope_2"?"Véhicules":scope}</td><td colspan="2"><span>${sousTotal.toFixed(2)}</span> kgCO₂e</td>`;
+    tbody.appendChild(trSubtotal);
+  });
+
+  // Total global
+  const total=transportRows.reduce((acc,r)=>{
+    if(r.mode==="vehicule"){
+      if(r.carburant==="electrique") return acc+((r.conso*r.distance*r.nombre)/100*0.233);
+      else return acc+((r.conso*r.distance*r.nombre)/100*{diesel:2.68,essence:2.31,gpl:1.6}[r.carburant]);
+    } else return acc+((r.facteur||0)*(r.distance||0)*(r.nombre||1));
+  },0);
+  const trTotal=document.createElement('tr'); trTotal.className='total-row';
+  trTotal.innerHTML=`<td colspan="5">Total</td><td colspan="2"><span>${total.toFixed(2)}</span> kgCO₂e</td>`;
+  tbody.appendChild(trTotal);
+
+  // Sauvegarde
+  sessionStorage.setItem('transportRows',JSON.stringify(transportRows));
+}
+
+
 function suivant() {
-  const totalEmission = transportRows.reduce((acc, row) =>
-    acc + ((row.facteur || 0) * (row.distance || 0) * (row.nombre || 1)), 0);
-
-  const emissionData = JSON.parse(localStorage.getItem("emissionData")) || {};
-  emissionData.transport = totalEmission;
-
-  const autresDetails = (emissionData.details || []).filter(item => item.categorie !== "Transport");
-  const nouveauxDetails = transportRows.map(row => ({
-    nom: row.engin || "",
-    categorie: "Transport",
-    scope: row.scope || "",
-    facteur: row.facteur || 0,
-    unite: "kg/km",
-    id: row.type_engin_id || null
-  }));
-
-  emissionData.details = [...autresDetails, ...nouveauxDetails];
-  localStorage.setItem("emissionData", JSON.stringify(emissionData));
+  // Exemple 1 : rediriger vers la page suivante
   window.location.href = "{{ url_for('energie') }}";
+
+  // Exemple 2 : juste afficher un message
+  // alert("Bouton 'Étape suivante' cliqué !");
 }
 
-function handleQuit() {
-  window.location.href = "/";
-}
-
-function saveAndRender() {
-  renderTable();
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-  const saved = sessionStorage.getItem('transportRows');
-  if (saved) {
-    transportRows = JSON.parse(saved);
-  }
+// ---------- Init ----------
+document.addEventListener('DOMContentLoaded',()=>{
+  const saved=sessionStorage.getItem('transportRows');
+  if(saved) transportRows=JSON.parse(saved);
   renderTable();
 });
 </script>
+
+
 
 
 
