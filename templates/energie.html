@@ -488,14 +488,15 @@
   function handleQuit() { sessionStorage.removeItem('energyRows'); window.location.href = "/"; }
 
   document.addEventListener('DOMContentLoaded', () => {
-    const saved = sessionStorage.getItem('energyRows');
-    if (saved) {
-      energyRows = JSON.parse(saved);
-    } else {
-      scopes.forEach(scope => addEnergyRow(scope));
-    }
-    renderTable();
-  });
+  const saved = sessionStorage.getItem('energyRows');
+  if (saved) {
+    energyRows = JSON.parse(saved);
+  } else {
+    energyRows = []; // rien au départ
+  }
+  renderTable();
+});
+
 </script>
 
 
