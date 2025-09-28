@@ -294,7 +294,7 @@ td:nth-child(5) input {
    <div class="add-buttons">
   <button type="button" onclick="addEquipementRow('scope_3')">➕ Ajouter équipements</button>
       <button type="button" onclick="addEnginRow('scope_3')">➕ Ajouter Engin</button>
-<!--  <button type="button" onclick="addManualRow('scope_3')">➕ Ajouter Manuel</button>-->
+ <button type="button" onclick="addAppareilRow('scope_3')">➕ Ajouter Appareil</button>
 </div>
 
 
@@ -341,6 +341,22 @@ function afficherDescription(description) {
   document.getElementById('enginDescription').textContent = description || '';
 }
 
+// navigation clavier (Entrée → champ suivant, Shift+Entrée → champ précédent)
+function enableInputNavigation(input) {
+  input.addEventListener("keydown", e => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      const inputs = Array.from(document.querySelectorAll("input, select"));
+      const idx = inputs.indexOf(e.target);
+      if (idx !== -1) {
+        const next = e.shiftKey ? inputs[idx - 1] : inputs[idx + 1];
+        if (next) next.focus();
+      }
+    }
+  });
+  return input;
+}
+
 // ---------- Render Table ----------
 function renderTable() {
   const tbody = document.getElementById('equipementBody');
@@ -359,23 +375,32 @@ function renderTable() {
   tbody.appendChild(trTitle);
 
   // Rows
-  rowsFiltered.forEach(row => {
+  rowsFiltered.forEach((row, rowIndex) => {
     const tr = document.createElement('tr');
 
     // Col 1: Mode
     const tdMode = document.createElement('td');
     const chip = document.createElement('span');
-    chip.className = `chip ${row.mode === 'manuel' ? 'chip-manuel' : (row.mode === 'engin' ? 'chip-engin' : 'chip-predef')}`;
-    chip.textContent = row.mode === 'manuel' ? 'Manuel' : (row.mode === 'engin' ? 'Engin' : 'Pré-défini');
+    chip.className = `chip ${
+      row.mode === 'manuel' ? 'chip-manuel' :
+      row.mode === 'engin' ? 'chip-engin' :
+      row.mode === 'appareil' ? 'chip-appareil' :
+      'chip-predef'
+    }`;
+    chip.textContent =
+      row.mode === 'manuel' ? 'Manuel' :
+      row.mode === 'engin' ? 'Engin' :
+      row.mode === 'appareil' ? 'Appareil' :
+      'Pré-défini';
     tdMode.appendChild(chip);
     tr.appendChild(tdMode);
 
     // Col 2: Catégorie
     const tdCat = document.createElement('td');
-    if (row.mode === "manuel" || row.mode === "engin") {
+    if (["manuel", "engin", "appareil"].includes(row.mode)) {
       tdCat.innerHTML = `<span style="color:#64748b">— (saisi ${row.mode})</span>`;
     } else {
-      const selCat = document.createElement('select');
+      const selCat = enableInputNavigation(document.createElement('select'));
       selCat.className = 'input-compact';
       selCat.innerHTML = `<option value="">— Choisir une catégorie —</option>`;
       Object.keys(enginsData[scope]).forEach(cat => {
@@ -398,21 +423,20 @@ function renderTable() {
     }
     tr.appendChild(tdCat);
 
-    // Col 3: Type d'équipement
+    // Col 3: Saisie
     const tdEngin = document.createElement('td');
+
     if (row.mode === "manuel") {
-      // Nom
-      const inputNom = document.createElement('input');
+      const inputNom = enableInputNavigation(document.createElement('input'));
       inputNom.type = "text";
       inputNom.className = "input-compact";
-      inputNom.placeholder = row.placeholders?.engin || "Nom de l'équipement (ex: Scie)";
+      inputNom.placeholder = row.placeholders?.engin || "Nom de l'équipement";
       inputNom.value = row.engin || '';
       inputNom.oninput = e => { row.engin = e.target.value; sessionStorage.setItem('equipementRows', JSON.stringify(equipementRows)); };
       inputNom.onblur = () => saveAndRender();
       tdEngin.appendChild(inputNom);
 
-      // Facteur
-      const inputFacteur = document.createElement('input');
+      const inputFacteur = enableInputNavigation(document.createElement('input'));
       inputFacteur.type = "number";
       inputFacteur.inputMode = "decimal";
       inputFacteur.step = "any";
@@ -423,21 +447,8 @@ function renderTable() {
       inputFacteur.oninput = e => { row.facteur = parseNum(e.target.value); saveAndRender(); };
       tdEngin.appendChild(inputFacteur);
 
-      // Quantité
-      const inputQte = document.createElement('input');
-      inputQte.type = 'number';
-      inputQte.inputMode = "decimal";
-      inputQte.step = 'any';
-      inputQte.min = '0';
-      inputQte.placeholder = row.placeholders?.quantite || "Ex. 10";
-      inputQte.className = 'input-compact';
-      inputQte.value = row.quantite || '';
-      inputQte.oninput = e => { row.quantite = parseNum(e.target.value); saveAndRender(); };
-      tdEngin.appendChild(inputQte);
-
     } else if (row.mode === "engin") {
-      // Sélection type : Agricole ou BTP
-      const selectType = document.createElement('select');
+      const selectType = enableInputNavigation(document.createElement('select'));
       selectType.className = "input-compact";
       selectType.innerHTML = `
         <option value="">Type d'engin</option>
@@ -448,121 +459,71 @@ function renderTable() {
       selectType.onchange = e => { row.type_engin = e.target.value; saveAndRender(); };
       tdEngin.appendChild(selectType);
 
-      // Nom
-      const inputNom = document.createElement('input');
+      const inputNom = enableInputNavigation(document.createElement('input'));
       inputNom.type = "text";
       inputNom.className = "input-compact";
-      inputNom.placeholder = row.placeholders?.engin || "Nom de l'engin (ex: Tracteur, Bulldozer)";
+      inputNom.placeholder = row.placeholders?.engin || "Nom de l'engin";
       inputNom.value = row.engin || '';
       inputNom.oninput = e => { row.engin = e.target.value; sessionStorage.setItem('equipementRows', JSON.stringify(equipementRows)); };
       tdEngin.appendChild(inputNom);
 
-      // Carburant
-      const inputCarb = document.createElement('select');
-      inputCarb.className = "input-compact";
-      inputCarb.innerHTML = `
-        <option value="">${row.placeholders?.carburant || "Choisir carburant"}</option>
-        <option value="diesel">Diesel</option>
-        <option value="essence">Essence</option>
-        <option value="elec">Électrique</option>
-      `;
-      inputCarb.value = row.carburant || '';
-      inputCarb.onchange = e => { row.carburant = e.target.value; saveAndRender(); };
-      tdEngin.appendChild(inputCarb);
+    } else if (row.mode === "appareil") {
+      const inputNom = enableInputNavigation(document.createElement('input'));
+      inputNom.type = "text";
+      inputNom.className = "input-compact";
+      inputNom.placeholder = row.placeholders?.engin || "Nom de l'appareil";
+      inputNom.value = row.engin || '';
+      inputNom.oninput = e => { row.engin = e.target.value; sessionStorage.setItem('equipementRows', JSON.stringify(equipementRows)); };
+      tdEngin.appendChild(inputNom);
 
-      // Puissance ou conso horaire
-      const inputPuissance = document.createElement('input');
-      inputPuissance.type = "number";
-      inputPuissance.inputMode = "decimal";
-      inputPuissance.step = "any";
-      inputPuissance.min = "0";
-      inputPuissance.placeholder = row.type_engin === "btp" ? "Conso horaire (L/h)" : "Puissance (CV)";
-      inputPuissance.className = "input-compact";
-      inputPuissance.value = row.puissance || '';
-      inputPuissance.oninput = e => { row.puissance = parseNum(e.target.value); saveAndRender(); };
-      tdEngin.appendChild(inputPuissance);
+      const inputP = enableInputNavigation(document.createElement('input'));
+      inputP.type = "number";
+      inputP.inputMode = "decimal";
+      inputP.step = "any";
+      inputP.min = "0";
+      inputP.placeholder = row.placeholders?.puissance || "Puissance (W)";
+      inputP.className = "input-compact";
+      inputP.value = row.puissance || '';
+      inputP.oninput = e => { row.puissance = parseNum(e.target.value); saveAndRender(); };
+      tdEngin.appendChild(inputP);
 
-      // Durée
-      const inputDuree = document.createElement('input');
-      inputDuree.type = "number";
-      inputDuree.inputMode = "decimal";
-      inputDuree.step = "any";
-      inputDuree.min = "0";
-      inputDuree.placeholder = "Durée (h)";
-      inputDuree.className = "input-compact";
-      inputDuree.value = row.duree || '';
-      inputDuree.oninput = e => { row.duree = parseNum(e.target.value); saveAndRender(); };
-      tdEngin.appendChild(inputDuree);
+      const inputD = enableInputNavigation(document.createElement('input'));
+      inputD.type = "number";
+      inputD.inputMode = "decimal";
+      inputD.step = "any";
+      inputD.min = "0";
+      inputD.placeholder = row.placeholders?.duree || "Durée (h/jour)";
+      inputD.className = "input-compact";
+      inputD.value = row.duree || '';
+      inputD.oninput = e => { row.duree = parseNum(e.target.value); saveAndRender(); };
+      tdEngin.appendChild(inputD);
 
-      // Surface uniquement si agricole
-      if (row.type_engin === "agricole") {
-        const inputSurface = document.createElement('input');
-        inputSurface.type = "number";
-        inputSurface.inputMode = "decimal";
-        inputSurface.step = "any";
-        inputSurface.min = "0";
-        inputSurface.placeholder = "Surface (ha)";
-        inputSurface.className = "input-compact";
-        inputSurface.value = row.surface || '';
-        inputSurface.oninput = e => { row.surface = parseNum(e.target.value); saveAndRender(); };
-        tdEngin.appendChild(inputSurface);
-      }
-    } else {
-      // Pré-défini
-      const selEngin = document.createElement('select');
-      selEngin.className = 'input-compact';
-      selEngin.innerHTML = `<option value="">— Choisir l'équipement —</option>`;
-      if (row.categorie && enginsData[scope][row.categorie]) {
-        enginsData[scope][row.categorie].forEach(engin => {
-          const opt = document.createElement('option');
-          opt.value = engin.nom;
-          opt.textContent = engin.nom;
-          if (engin.nom === row.engin) opt.selected = true;
-          selEngin.appendChild(opt);
-        });
-      }
-      selEngin.onchange = e => {
-        const selected = e.target.value;
-        row.engin = selected;
-        if (row.categorie) {
-          const match = enginsData[scope][row.categorie].find(engin => engin.nom === selected);
-          row.facteur = match ? parseNum(match.facteur) : '';
-          row.description = match ? match.description : '';
-          row.unite = match ? (match.unite || 'U') : 'U';
-          afficherDescription(row.description);
-        }
-        saveAndRender();
-      };
-      tdEngin.appendChild(selEngin);
+      const inputJ = enableInputNavigation(document.createElement('input'));
+      inputJ.type = "number";
+      inputJ.inputMode = "decimal";
+      inputJ.step = "any";
+      inputJ.min = "0";
+      inputJ.placeholder = row.placeholders?.jours || "Nb de jours";
+      inputJ.className = "input-compact";
+      inputJ.value = row.jours || '';
+      inputJ.oninput = e => { row.jours = parseNum(e.target.value); saveAndRender(); };
+      tdEngin.appendChild(inputJ);
     }
     tr.appendChild(tdEngin);
 
     // Col 4: Facteur
     const tdFacteur = document.createElement('td');
-    if (row.mode === "manuel") {
-      const inputFacteur = document.createElement('input');
-      inputFacteur.type = "number";
-      inputFacteur.inputMode = "decimal";
-      inputFacteur.step = "any";
-      inputFacteur.min = "0";
-      inputFacteur.placeholder = row.placeholders?.facteur || "Ex. 2,75";
-      inputFacteur.className = "input-compact";
-      inputFacteur.value = row.facteur || '';
-      inputFacteur.oninput = e => { row.facteur = parseNum(e.target.value); saveAndRender(); };
-      tdFacteur.appendChild(inputFacteur);
-    } else {
-      const ro = document.createElement('input');
-      ro.type = 'text';
-      ro.readOnly = true;
-      ro.className = 'input-compact input-readonly';
-      ro.value = row.facteur || '';
-      tdFacteur.appendChild(ro);
-    }
+    const ro = document.createElement('input');
+    ro.type = 'text';
+    ro.readOnly = true;
+    ro.className = 'input-compact input-readonly';
+    ro.value = row.facteur || '';
+    tdFacteur.appendChild(ro);
     tr.appendChild(tdFacteur);
 
     // Col 5: Quantité
     const tdQte = document.createElement('td');
-    const inputQte = document.createElement('input');
+    const inputQte = enableInputNavigation(document.createElement('input'));
     inputQte.type = 'number';
     inputQte.inputMode = "decimal";
     inputQte.step = 'any';
@@ -577,24 +538,24 @@ function renderTable() {
     // Col 6: Émissions
     const tdEm = document.createElement('td');
     let total = 0;
-
     if (row.mode === "engin") {
       const feCarburant = { diesel: 2.68, essence: 2.31, elec: 0.075 };
       const carburantFE = feCarburant[row.carburant] || 0;
-
       if (row.type_engin === "agricole") {
         const consommation = row.carburant === 'elec'
           ? row.puissance * row.duree
           : row.puissance * 0.24 * row.duree;
         total = ((consommation * carburantFE) / (row.surface || 1)) * parseNum(row.quantite);
       } else if (row.type_engin === "btp") {
-        const consommation = row.puissance * row.duree; // ici puissance = conso horaire
+        const consommation = row.puissance * row.duree;
         total = (consommation * carburantFE) * parseNum(row.quantite);
       }
+    } else if (row.mode === "appareil") {
+      const kWh = (row.puissance / 1000) * row.duree * row.jours;
+      total = kWh * row.facteur * parseNum(row.quantite);
     } else {
       total = parseNum(row.facteur) * parseNum(row.quantite);
     }
-
     tdEm.textContent = fmt2(total);
     tr.appendChild(tdEm);
 
@@ -613,14 +574,19 @@ function renderTable() {
     tr.appendChild(tdAct);
 
     tbody.appendChild(tr);
+
+    // autofocus sur la première cellule de la ligne nouvellement ajoutée
+    if (row._autofocus && tr.querySelector("input, select")) {
+      tr.querySelector("input, select").focus();
+      delete row._autofocus;
+    }
   });
 
-  // Subtotal & Total
+  // --- Sous-total & total (inchangé) ---
   const subtotal = rowsFiltered.reduce((acc, r) => {
     if (r.mode === "engin") {
       const feCarburant = { diesel: 2.68, essence: 2.31, elec: 0.075 };
       const carburantFE = feCarburant[r.carburant] || 0;
-
       if (r.type_engin === "agricole") {
         const consommation = r.carburant === 'elec'
           ? r.puissance * r.duree
@@ -631,6 +597,9 @@ function renderTable() {
         return acc + (consommation * carburantFE) * parseNum(r.quantite);
       }
       return acc;
+    } else if (r.mode === "appareil") {
+      const kWh = (r.puissance / 1000) * r.duree * r.jours;
+      return acc + kWh * r.facteur * parseNum(r.quantite);
     } else {
       return acc + parseNum(r.facteur) * parseNum(r.quantite);
     }
@@ -645,7 +614,6 @@ function renderTable() {
     if (r.mode === "engin") {
       const feCarburant = { diesel: 2.68, essence: 2.31, elec: 0.075 };
       const carburantFE = feCarburant[r.carburant] || 0;
-
       if (r.type_engin === "agricole") {
         const consommation = r.carburant === 'elec'
           ? r.puissance * r.duree
@@ -656,6 +624,9 @@ function renderTable() {
         return acc + (consommation * carburantFE) * parseNum(r.quantite);
       }
       return acc;
+    } else if (r.mode === "appareil") {
+      const kWh = (r.puissance / 1000) * r.duree * r.jours;
+      return acc + kWh * r.facteur * parseNum(r.quantite);
     } else {
       return acc + parseNum(r.facteur) * parseNum(r.quantite);
     }
@@ -666,9 +637,7 @@ function renderTable() {
   trTot.innerHTML = `<td colspan="6">Total</td><td>${fmt2(total)} kgCO₂e</td>`;
   tbody.appendChild(trTot);
 
-  // Persistence
   sessionStorage.setItem('equipementRows', JSON.stringify(equipementRows));
-
   const emissionData = JSON.parse(localStorage.getItem("emissionData")) || {};
   emissionData.equipements = total;
   const autresDetails = (emissionData.details || []).filter(item => item.categorie !== "Équipements");
@@ -676,7 +645,7 @@ function renderTable() {
     nom: row.engin || '(non renseigné)',
     categorie: "Équipements",
     scope: row.scope,
-    facteur: row.mode === "engin" ? row.facteur : parseNum(row.facteur),
+    facteur: parseNum(row.facteur),
     unite: row.unite || 'U'
   }));
   emissionData.details = [...autresDetails, ...nouveauxDetails];
@@ -694,7 +663,8 @@ function addEquipementRow(scope) {
     quantite: '',
     facteur: '',
     unite: 'U',
-    placeholders: {}
+    placeholders: {},
+    _autofocus: true
   });
   afficherDescription('');
   saveAndRender();
@@ -744,6 +714,30 @@ function addEnginRow(scope) {
   saveAndRender();
 }
 
+function addAppareilRow(scope) {
+  equipementRows.push({
+    scope,
+    mode: "appareil",
+    engin: '',
+    puissance: '',
+    duree: '',
+    jours: '',
+    quantite: '',
+    facteur: 0.233,
+    unite: 'kWh',
+    _autofocus: true,
+    placeholders: {
+      engin: "Nom de l'appareil (ex: Téléviseur)",
+      puissance: "Puissance (W)",
+      duree: "Durée (h/jour)",
+      jours: "Nb de jours",
+      quantite: "Ex. 1"
+    }
+  });
+  afficherDescription('');
+  saveAndRender();
+}
+
 // ---------- Navigation ----------
 function precedent() { window.location.href = "{{ url_for('energie') }}"; }
 function suivant() { sessionStorage.removeItem('autreRows'); window.location.href = "{{ url_for('arbres') }}"; }
@@ -757,6 +751,7 @@ document.addEventListener('DOMContentLoaded', () => {
   renderTable();
 });
 </script>
+
 
 
 
