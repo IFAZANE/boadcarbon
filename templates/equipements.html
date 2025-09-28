@@ -362,7 +362,7 @@ function computeEmissions(row) {
     if (row.mode === "engin") {
         const feCarb = { diesel: 2.68, essence: 2.31, elec: 0.075 };
         const cFE = feCarb[row.carburant] || 0;
-        const jours = parseNum(row.jours || 1); // nouveau champ
+        const jours = parseNum(row.jours || 1);
         if (row.type_engin === "agricole") {
             const con = row.carburant === 'elec'
                 ? row.puissance * row.duree
@@ -380,8 +380,8 @@ function computeEmissions(row) {
         const mat = (row.materiau || "").toLowerCase();
         const FE = feMat[mat] || 0;
         const surface = parseNum(row.longueur) * parseNum(row.largeur);
-        const volume = surface * parseNum(row.epaisseur); // m³
-        const masse = volume * parseNum(row.densite);     // kg
+        const volume = surface * parseNum(row.epaisseur);
+        const masse = volume * parseNum(row.densite);
         total = masse * FE * parseNum(row.quantite);
     }
     return total;
@@ -437,7 +437,13 @@ function renderTable() {
                         input.value = row[field] || '';
                         input.addEventListener('change', e => { row[field] = e.target.value; updateEmissionRow(rowIndex, cat); });
                     } else {
-                        input.type = "number"; input.step="any"; input.min="0"; input.placeholder=field;
+                        input.type = "number"; input.step="any"; input.min="0";
+                        // <-- Nouveaux placeholders
+                        if(field==="puissance") input.placeholder="Puissance en W";
+                        else if(field==="duree") input.placeholder="Durée par jour (h)";
+                        else if(field==="jours") input.placeholder="Nombre de jours";
+                        else input.placeholder = field;
+
                         input.value = row[field] || '';
                         input.addEventListener('input', e => { row[field] = parseNum(e.target.value); updateEmissionRow(rowIndex, cat); });
                     }
@@ -451,7 +457,14 @@ function renderTable() {
                 ["engin","puissance","duree","jours"].forEach(field => {
                     const input = document.createElement('input');
                     input.className='input-compact';
-                    input.type = field==="engin" ? "text" : "number"; input.step="any"; input.min="0"; input.placeholder=field;
+                    input.type = field==="engin" ? "text" : "number"; input.step="any"; input.min="0";
+
+                    // <-- Nouveaux placeholders
+                    if(field==="puissance") input.placeholder="Puissance en W";
+                    else if(field==="duree") input.placeholder="Durée par jour (h)";
+                    else if(field==="jours") input.placeholder="Nombre de jours";
+                    else input.placeholder=field;
+
                     input.value = row[field] || '';
                     input.addEventListener('input', e => { row[field] = field==="engin"?e.target.value:parseNum(e.target.value); updateEmissionRow(rowIndex, cat); });
                     tdEngin.appendChild(input);
@@ -470,7 +483,8 @@ function renderTable() {
                         else input.innerHTML=`<option value="">Matériau</option><option value="beton">Béton</option><option value="asphalte">Asphalte</option><option value="briques">Briques</option><option value="gravats">Gravats</option><option value="isolation">Isolation</option><option value="amiante">Amiante</option><option value="bois">Bois</option>`;
                         input.addEventListener('change', e=>{ row[field]=e.target.value; updateEmissionRow(rowIndex, cat); });
                     } else {
-                        input.type='number'; input.step='any'; input.min='0'; input.placeholder=field;
+                        input.type='number'; input.step='any'; input.min='0';
+                        input.placeholder=field;
                         input.addEventListener('input', e=>{ row[field]=parseNum(e.target.value); updateEmissionRow(rowIndex, cat); });
                     }
                     tdEngin.appendChild(input);
@@ -557,6 +571,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     renderTable();
 });
 </script>
+
 
 
 
