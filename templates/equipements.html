@@ -324,6 +324,8 @@ td:nth-child(5) input {
   </main>
 
 
+
+
 <script>
 let equipementRows = [];
 const enginsData = {{ engins_equipements | tojson }};
@@ -341,7 +343,8 @@ function fmt2(x) {
 }
 
 function afficherDescription(desc) {
-    document.getElementById('enginDescription').textContent = desc || '';
+    const descEl = document.getElementById('enginDescription');
+    if (descEl) descEl.textContent = desc || '';
 }
 
 // ---------- Facteurs d’émission ----------
@@ -353,10 +356,10 @@ const feMat = {
     beton: 0.11900,
     isolation: 1.86200,
     bois: 0.26900,
-    pave: 0.15000 // exemple FE fictif pour pavés
+    pave: 0.15000
 };
 
-// ---------- Densités par défaut (kg/cm³) ----------
+// ---------- Densités par défaut ----------
 const defaultDensities = {
     beton: 0.0024,
     briques: 0.0019,
@@ -376,9 +379,7 @@ function computeEmissions(row) {
         const cFE = feCarb[row.carburant] || 0;
         const jours = parseNum(row.jours || 1);
         if (row.type_engin === "agricole") {
-            const con = row.carburant === 'elec'
-                ? row.puissance * row.duree
-                : row.puissance * 0.24 * row.duree;
+            const con = row.carburant === 'elec' ? row.puissance * row.duree : row.puissance * 0.24 * row.duree;
             total = con * cFE * (row.surface || 1) * parseNum(row.quantite) * jours;
         } else if (row.type_engin === "btp") {
             total = row.puissance * row.duree * cFE * parseNum(row.quantite) * jours;
@@ -400,9 +401,22 @@ function computeEmissions(row) {
     return total;
 }
 
+// ---------- Persistance dans localStorage pour la page résultats ----------
+function commitEmissionData() {
+    const emissionData = JSON.parse(localStorage.getItem("emissionData")) || {};
+    emissionData.equipements = equipementRows.map(row => ({
+        ...row,
+        emission: computeEmissions(row)
+    }));
+    const totalGeneral = equipementRows.reduce((acc, r) => acc + computeEmissions(r), 0);
+    emissionData.totalEquipements = totalGeneral;
+    localStorage.setItem("emissionData", JSON.stringify(emissionData));
+}
+
 // ---------- Render Table ----------
 function renderTable() {
     const tbody = document.getElementById('equipementBody');
+    if (!tbody) return;
     tbody.innerHTML = '';
 
     const scope = 'scope_3';
@@ -418,7 +432,6 @@ function renderTable() {
 
     categories.forEach(cat => {
         const rowsCat = rowsFiltered.filter(r => r.mode === cat);
-
         rowsCat.forEach((row, rowIndex) => {
             const tr = document.createElement('tr');
 
@@ -435,115 +448,95 @@ function renderTable() {
 
             // Caractéristiques
             const tdEngin = document.createElement('td');
-
             if (cat === "engin") {
                 ["type_engin","carburant","puissance","duree","surface","jours"].forEach(field => {
-                    const input = field==="type_engin"||field==="carburant"? document.createElement('select') : document.createElement('input');
+                    const input = (field==="type_engin"||field==="carburant") ? document.createElement('select') : document.createElement('input');
                     input.className = 'input-compact';
-
-                    if (input.tagName==="SELECT"){
+                    if (input.tagName==="SELECT") {
                         if(field==="type_engin"){
                             input.innerHTML=`<option value="">Type d'engin</option><option value="agricole">Agricole</option><option value="btp">BTP</option>`;
                         } else {
                             input.innerHTML=`<option value="">Carburant</option><option value="diesel">Diesel</option><option value="essence">Essence</option><option value="elec">Électrique</option>`;
                         }
                         input.value = row[field] || '';
-                        input.addEventListener('change', e => { row[field] = e.target.value; updateEmissionRow(rowIndex, cat); });
+                        input.addEventListener('change', e => { row[field]=e.target.value; updateEmissionRow(rowIndex, cat); saveToStorage(); commitEmissionData(); });
                     } else {
-                        input.type = "number"; input.step="any"; input.min="0";
-                        if(field==="puissance") input.placeholder="Puissance CV";
-                        else if(field==="duree") input.placeholder="Durée par jour (h)";
-                        else if(field==="jours") input.placeholder="Nombre de jours";
-                        else input.placeholder = field;
-
+                        input.type="number"; input.step="any"; input.min="0"; input.placeholder = field==="puissance" ? "Puissance CV" :
+                                                                                           field==="duree" ? "Durée par jour (h)" :
+                                                                                           field==="jours" ? "Nombre de jours" : field;
                         input.value = row[field] || '';
-                        input.addEventListener('input', e => { row[field] = parseNum(e.target.value); updateEmissionRow(rowIndex, cat); });
+                        input.addEventListener('input', e => { row[field]=parseNum(e.target.value); updateEmissionRow(rowIndex, cat); saveToStorage(); commitEmissionData(); });
                     }
-
                     tdEngin.appendChild(input);
                 });
-            }
-
-            // Appareil
-            if (cat === "appareil") {
+            } else if (cat === "appareil") {
                 ["engin","puissance","duree","jours"].forEach(field => {
                     const input = document.createElement('input');
                     input.className='input-compact';
                     input.type = field==="engin" ? "text" : "number"; input.step="any"; input.min="0";
-
-                    if(field==="puissance") input.placeholder="Puissance en W";
-                    else if(field==="duree") input.placeholder="Durée par jour (h)";
-                    else if(field==="jours") input.placeholder="Nombre de jours";
-                    else input.placeholder=field;
-
+                    input.placeholder = field==="puissance" ? "Puissance en W" : field==="duree" ? "Durée par jour (h)" : field==="jours" ? "Nombre de jours" : field;
                     input.value = row[field] || '';
-                    input.addEventListener('input', e => { row[field] = field==="engin"?e.target.value:parseNum(e.target.value); updateEmissionRow(rowIndex, cat); });
+                    input.addEventListener('input', e => { row[field] = field==="engin" ? e.target.value : parseNum(e.target.value); updateEmissionRow(rowIndex, cat); saveToStorage(); commitEmissionData(); });
                     tdEngin.appendChild(input);
                 });
-            }
-
-            // Construction
-            if (cat === "construction") {
+            } else if (cat === "construction") {
                 ["type_construction","materiau","longueur","largeur","epaisseur","densite"].forEach(field => {
-                    const input = (field==="type_construction"||field==="materiau")? document.createElement('select'): document.createElement('input');
+                    const input = (field==="type_construction"||field==="materiau") ? document.createElement('select') : document.createElement('input');
                     input.className='input-compact';
                     input.value = row[field] || '';
-
-                    if(input.tagName==="SELECT"){
+                    if(input.tagName==="SELECT") {
                         if(field==="type_construction") input.innerHTML=`<option value="">Type</option><option value="route">Route</option><option value="dalle">Dalle</option><option value="mur">Mur</option>`;
-                        else input.innerHTML=`<option value="">Matériau</option>
-                            <option value="beton">Béton</option>
-                            <option value="asphalte">Asphalte</option>
-                            <option value="briques">Briques</option>
-                            <option value="gravats">Gravats</option>
-                            <option value="isolation">Isolation</option>
-                            <option value="amiante">Amiante</option>
-                            <option value="bois">Bois</option>
-                            <option value="pave">Pavé</option>`;
-                        input.value = row[field] || '';
-                        input.addEventListener('change', e=>{
+                        else input.innerHTML=`<option value="">Matériau</option><option value="beton">Béton</option><option value="asphalte">Asphalte</option><option value="briques">Briques</option><option value="gravats">Gravats</option><option value="isolation">Isolation</option><option value="amiante">Amiante</option><option value="bois">Bois</option><option value="pave">Pavé</option>`;
+                        input.addEventListener('change', e => {
                             row[field]=e.target.value;
                             if(defaultDensities[row[field]]) row.densite = defaultDensities[row[field]];
                             updateEmissionRow(rowIndex, cat);
+                            saveToStorage();
+                            commitEmissionData();
                             renderTable();
                         });
                     } else {
                         input.type='number'; input.step='any'; input.min='0';
-                        if(field==="longueur") input.placeholder="Longueur (cm)";
-                        else if(field==="largeur") input.placeholder="Largeur (cm)";
-                        else if(field==="epaisseur") input.placeholder="Épaisseur (cm)";
-                        else if(field==="densite") input.placeholder="kg/cm³";
-                        else input.placeholder=field;
-
+                        input.placeholder = field==="longueur" ? "Longueur (cm)" : field==="largeur" ? "Largeur (cm)" : field==="epaisseur" ? "Épaisseur (cm)" : field==="densite" ? "kg/cm³" : field;
                         input.value = row[field] || (field==="densite" && defaultDensities[row.materiau]) || '';
-                        input.addEventListener('input', e=>{ row[field]=parseNum(e.target.value); updateEmissionRow(rowIndex, cat); });
+                        input.addEventListener('input', e=>{ row[field]=parseNum(e.target.value); updateEmissionRow(rowIndex, cat); saveToStorage(); commitEmissionData(); });
                     }
                     tdEngin.appendChild(input);
                 });
             }
-
             tr.appendChild(tdEngin);
 
             // Quantité
             const tdQ = document.createElement('td');
             const inputQ = document.createElement('input');
             inputQ.type='number'; inputQ.step='any'; inputQ.min='0'; inputQ.className='input-compact'; inputQ.placeholder='Ex.1';
-            inputQ.value = row.quantite||'';
-            inputQ.addEventListener('input', e => { row.quantite=parseNum(e.target.value); updateEmissionRow(rowIndex, cat); });
+            inputQ.value = row.quantite || '';
+            inputQ.addEventListener('input', e => { row.quantite=parseNum(e.target.value); updateEmissionRow(rowIndex, cat); saveToStorage(); commitEmissionData(); });
             tdQ.appendChild(inputQ);
             tr.appendChild(tdQ);
 
             // Émissions
-            const tdE = document.createElement('td'); tdE.className='emission-cell';
+            const tdE = document.createElement('td');
+            tdE.className='emission-cell';
             tdE.textContent = fmt2(computeEmissions(row));
-            tdE.dataset.rowIndex = rowIndex; tdE.dataset.cat = cat;
+            tdE.dataset.rowIndex = rowIndex;
+            tdE.dataset.cat = cat;
             tr.appendChild(tdE);
 
             // Action
-            const tdAct=document.createElement('td');
-            const btn=document.createElement('button'); btn.className='action-btn'; btn.textContent='🗑️';
-            btn.onclick=()=>{ equipementRows.splice(equipementRows.indexOf(row),1); afficherDescription(''); renderTable(); };
-            tdAct.appendChild(btn); tr.appendChild(tdAct);
+            const tdAct = document.createElement('td');
+            const btn = document.createElement('button');
+            btn.className='action-btn';
+            btn.textContent='🗑️';
+            btn.onclick = () => {
+                equipementRows.splice(equipementRows.indexOf(row),1);
+                afficherDescription('');
+                renderTable();
+                saveToStorage();
+                commitEmissionData();
+            };
+            tdAct.appendChild(btn);
+            tr.appendChild(tdAct);
 
             tbody.appendChild(tr);
         });
@@ -551,15 +544,15 @@ function renderTable() {
 
     updateAllSubtotals();
     saveToStorage();
+    commitEmissionData();
 }
 
 // ---------- Update single row emission ----------
-function updateEmissionRow(index, cat){
-    const rowsFiltered = equipementRows.filter(r=>r.scope==='scope_3' && r.mode===cat);
+function updateEmissionRow(index, cat) {
+    const rowsFiltered = equipementRows.filter(r => r.scope==='scope_3' && r.mode===cat);
     const row = rowsFiltered[index];
-    const emission = computeEmissions(row);
     const tdE = document.querySelector(`.emission-cell[data-row-index="${index}"][data-cat="${cat}"]`);
-    if(tdE) tdE.textContent = fmt2(emission);
+    if(tdE) tdE.textContent = fmt2(computeEmissions(row));
     updateAllSubtotals();
 }
 
@@ -567,19 +560,19 @@ function updateEmissionRow(index, cat){
 function updateAllSubtotals(){
     const tbody = document.getElementById('equipementBody');
     const subtotals = { engin:0, appareil:0, construction:0 };
-    equipementRows.forEach(row => { subtotals[row.mode] += computeEmissions(row); });
+    equipementRows.forEach(r => subtotals[r.mode] += computeEmissions(r));
 
     tbody.querySelectorAll('.subtotal-row, .total-row').forEach(tr=>tr.remove());
 
     ["engin","appareil","construction"].forEach(cat=>{
         const trSub = document.createElement('tr'); trSub.className='subtotal-row';
-        trSub.innerHTML=`<td colspan="4"><b>Sous-total ${cat.charAt(0).toUpperCase()+cat.slice(1)}</b></td><td>${fmt2(subtotals[cat])}</td><td></td>`;
+        trSub.innerHTML = `<td colspan="4"><b>Sous-total ${cat.charAt(0).toUpperCase()+cat.slice(1)}</b></td><td>${fmt2(subtotals[cat])}</td><td></td>`;
         tbody.appendChild(trSub);
     });
 
-    const trTotal=document.createElement('tr'); trTotal.className='total-row';
-    const totalGeneral = subtotals.engin+subtotals.appareil+subtotals.construction;
-    trTotal.innerHTML=`<td colspan="4"><b>Total Général</b></td><td>${fmt2(totalGeneral)}</td><td></td>`;
+    const trTotal = document.createElement('tr'); trTotal.className='total-row';
+    const totalGeneral = subtotals.engin + subtotals.appareil + subtotals.construction;
+    trTotal.innerHTML = `<td colspan="4"><b>Total Général</b></td><td>${fmt2(totalGeneral)}</td><td></td>`;
     tbody.appendChild(trTotal);
 }
 
@@ -587,7 +580,7 @@ function updateAllSubtotals(){
 function saveToStorage(){ sessionStorage.setItem('equipementRows',JSON.stringify(equipementRows)); }
 
 // ---------- Add Rows ----------
-function addEnginRow(scope){ equipementRows.push({scope,mode:"engin",categorie:'',quantite:'',carburant:'',type_engin:'',puissance:'',duree:'',jours:'',surface:''}); renderTable(); }
+function addEnginRow(scope){ equipementRows.push({scope,mode:"engin",quantite:'',carburant:'',type_engin:'',puissance:'',duree:'',jours:'',surface:''}); renderTable(); }
 function addAppareilRow(scope){ equipementRows.push({scope,mode:"appareil",engin:'',puissance:'',duree:'',jours:'',quantite:''}); renderTable(); }
 function addConstructionRow(scope){ equipementRows.push({scope,mode:"construction",type_construction:'',materiau:'',longueur:'',largeur:'',epaisseur:'',densite:'',quantite:''}); renderTable(); }
 
@@ -596,9 +589,9 @@ function precedent(){ window.location.href="{{ url_for('energie') }}"; }
 function suivant(){ sessionStorage.removeItem('autreRows'); window.location.href="{{ url_for('arbres') }}"; }
 
 // ---------- Init ----------
-document.addEventListener('DOMContentLoaded',()=>{
-    const saved=sessionStorage.getItem('equipementRows');
-    if(saved) equipementRows=JSON.parse(saved);
+document.addEventListener('DOMContentLoaded', ()=>{
+    const saved = sessionStorage.getItem('equipementRows');
+    if(saved) equipementRows = JSON.parse(saved);
     renderTable();
 });
 </script>
