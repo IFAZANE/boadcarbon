@@ -399,6 +399,7 @@
 </div>
 
 
+
 <script>
 async function loadData() {
   // --- Données générales depuis localStorage ---
@@ -419,7 +420,7 @@ async function loadData() {
   if (data.equipements) {
     equipementRows = data.equipements;
 
-    // Calcul des sous-totaux par type
+    // Calcul des sous-totaux par type (toujours en kg dans les données brutes)
     equipementTotals.subtotalEngin = equipementRows
       .filter(r => r.mode === 'engin')
       .reduce((acc, r) => acc + (r.emission || 0), 0);
@@ -431,12 +432,12 @@ async function loadData() {
     equipementTotals.totalGeneral = equipementTotals.subtotalEngin + equipementTotals.subtotalAppareil;
   }
 
-  // --- Totaux par catégorie ---
+  // --- Totaux par catégorie (convertis en tCO2e directement) ---
   let categorieTotals = {
-    "Transport": parseFloat(data.transport) || 0,
-    "Énergie": parseFloat(data.energie) || 0,
-    "Équipements": equipementTotals.totalGeneral,
-    "Total compensation": parseFloat(data.arbres) || 0
+    "Transport": (parseFloat(data.transport) || 0) / 1000,
+    "Énergie": (parseFloat(data.energie) || 0) / 1000,
+    "Équipements": equipementTotals.totalGeneral / 1000,
+    "Total compensation": (parseFloat(data.arbres) || 0) / 1000
   };
 
   // --- Affichage résumé ---
@@ -446,7 +447,7 @@ async function loadData() {
 
   Object.entries(categorieTotals).forEach(([label, value]) => {
     const tr = document.createElement("tr");
-    tr.innerHTML = `<td>${label}</td><td>${value.toFixed(2)} kgCO₂e</td>`;
+    tr.innerHTML = `<td>${label}</td><td>${value.toFixed(3)} tCO₂e</td>`;
     tbody.appendChild(tr);
 
     if (label === "Total compensation") compensation = value;
@@ -454,11 +455,11 @@ async function loadData() {
   });
 
   const totalNet = total - compensation;
-  document.getElementById("emission-brute").innerHTML = `<strong>${total.toFixed(2)} kgCO₂e</strong>`;
-  document.getElementById("emission-compensee").innerHTML = `<strong>− ${compensation.toFixed(2)} kgCO₂e</strong>`;
-  document.getElementById("emission-nette").innerHTML = `<strong>= ${totalNet.toFixed(2)} kgCO₂e</strong>`;
+  document.getElementById("emission-brute").innerHTML = `<strong>${total.toFixed(3)} tCO₂e</strong>`;
+  document.getElementById("emission-compensee").innerHTML = `<strong>− ${compensation.toFixed(3)} tCO₂e</strong>`;
+  document.getElementById("emission-nette").innerHTML = `<strong>= ${totalNet.toFixed(3)} tCO₂e</strong>`;
 
-  // --- Graphique ---
+  // --- Graphique (données en tCO2e) ---
   const baseColors = ["#004B87", "#006837", "#f0ad4e"];
   const categorieColors = Object.keys(categorieTotals).map((_, i) => baseColors[i % baseColors.length]);
 
@@ -479,24 +480,22 @@ async function loadData() {
     }
   });
 
-  // --- Détails équipements ---
+  // --- Détails équipements (convertis en tCO2e) ---
   const detailBody = document.getElementById("details-table");
   detailBody.innerHTML = "";
 
-  // Ajout des lignes d'équipements avec leurs émissions
   equipementRows.forEach(row => {
-    const emission = row.emission || 0;
+    const emission = (row.emission || 0) / 1000; // conversion
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td>${row.engin || "-"}</td>
       <td>${row.type_engin || (row.mode === "appareil" ? "Appareil" : "-")}</td>
       <td>${row.scope || "-"}</td>
-      <td>${emission.toFixed(2)}</td>
+      <td>${emission.toFixed(3)} tCO₂e</td>
       <td>${row.mode === "engin" ? row.carburant || "-" : row.unite || "-"}</td>
     `;
     detailBody.appendChild(tr);
   });
-
 
 }
 
@@ -517,6 +516,7 @@ function clearAndQuit() {
 
 window.onload = loadData;
 </script>
+
 
 
 <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
