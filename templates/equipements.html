@@ -352,7 +352,8 @@ const feMat = {
     briques: 0.24200,
     beton: 0.11900,
     isolation: 1.86200,
-    bois: 0.26900
+    bois: 0.26900,
+    pave: 0.15000 // exemple FE fictif pour pavés
 };
 
 // ---------- Densités par défaut (kg/cm³) ----------
@@ -363,7 +364,8 @@ const defaultDensities = {
     isolation: 0.00003,
     gravats: 0.0015,
     asphalte: 0.0023,
-    amiante: 0.0026
+    amiante: 0.0026,
+    pave: 0.0022
 };
 
 // ---------- Compute Emissions ----------
@@ -489,7 +491,15 @@ function renderTable() {
 
                     if(input.tagName==="SELECT"){
                         if(field==="type_construction") input.innerHTML=`<option value="">Type</option><option value="route">Route</option><option value="dalle">Dalle</option><option value="mur">Mur</option>`;
-                        else input.innerHTML=`<option value="">Matériau</option><option value="beton">Béton</option><option value="asphalte">Asphalte</option><option value="briques">Briques</option><option value="gravats">Gravats</option><option value="isolation">Isolation</option><option value="amiante">Amiante</option><option value="bois">Bois</option>`;
+                        else input.innerHTML=`<option value="">Matériau</option>
+                            <option value="beton">Béton</option>
+                            <option value="asphalte">Asphalte</option>
+                            <option value="briques">Briques</option>
+                            <option value="gravats">Gravats</option>
+                            <option value="isolation">Isolation</option>
+                            <option value="amiante">Amiante</option>
+                            <option value="bois">Bois</option>
+                            <option value="pave">Pavé</option>`;
                         input.value = row[field] || '';
                         input.addEventListener('change', e=>{
                             row[field]=e.target.value;
@@ -592,12 +602,6 @@ document.addEventListener('DOMContentLoaded',()=>{
     renderTable();
 });
 </script>
-
-
-
-
-
-
 
 
 
