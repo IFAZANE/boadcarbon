@@ -398,6 +398,7 @@
   <button type="button" onclick="window.location.href='arbres'">← Étape précédente</button>
 </div>
 
+
 <script>
 async function loadData() {
   // --- Données générales depuis localStorage ---
@@ -406,26 +407,37 @@ async function loadData() {
   if (raw) {
     try {
       data = JSON.parse(raw);
-    } catch (e) { console.error("Erreur parsing emissionData", e); }
+    } catch (e) {
+      console.error("Erreur parsing emissionData", e);
+    }
+  }
+
+  // --- Détails équipements ---
+  let equipementRows = [];
+  let equipementTotals = { subtotalEngin: 0, subtotalAppareil: 0, totalGeneral: 0 };
+
+  if (data.equipements) {
+    equipementRows = data.equipements;
+
+    // Calcul des sous-totaux par type
+    equipementTotals.subtotalEngin = equipementRows
+      .filter(r => r.mode === 'engin')
+      .reduce((acc, r) => acc + (r.emission || 0), 0);
+
+    equipementTotals.subtotalAppareil = equipementRows
+      .filter(r => r.mode === 'appareil')
+      .reduce((acc, r) => acc + (r.emission || 0), 0);
+
+    equipementTotals.totalGeneral = equipementTotals.subtotalEngin + equipementTotals.subtotalAppareil;
   }
 
   // --- Totaux par catégorie ---
   let categorieTotals = {
     "Transport": parseFloat(data.transport) || 0,
     "Énergie": parseFloat(data.energie) || 0,
-    "Équipements": 0,  // On va compléter depuis sessionStorage
+    "Équipements": equipementTotals.totalGeneral,
     "Total compensation": parseFloat(data.arbres) || 0
   };
-
-  // --- Détails équipements depuis sessionStorage ---
-  let equipementTotals = { subtotalEngin: 0, subtotalAppareil: 0, totalGeneral: 0 };
-  let equipementRows = [];
-  const storedEquip = sessionStorage.getItem('equipementRows');
-  const storedTotals = sessionStorage.getItem('equipementTotals');
-  if (storedEquip) equipementRows = JSON.parse(storedEquip);
-  if (storedTotals) equipementTotals = JSON.parse(storedTotals);
-
-  categorieTotals["Équipements"] = equipementTotals.totalGeneral || 0;
 
   // --- Affichage résumé ---
   const tbody = document.getElementById("summary-table");
@@ -454,7 +466,12 @@ async function loadData() {
     type: "doughnut",
     data: {
       labels: Object.keys(categorieTotals),
-      datasets: [{ data: Object.values(categorieTotals), backgroundColor: categorieColors, borderWidth: 1, borderColor: "#fff" }]
+      datasets: [{
+        data: Object.values(categorieTotals),
+        backgroundColor: categorieColors,
+        borderWidth: 1,
+        borderColor: "#fff"
+      }]
     },
     options: {
       responsive: true,
@@ -466,34 +483,24 @@ async function loadData() {
   const detailBody = document.getElementById("details-table");
   detailBody.innerHTML = "";
 
-  // Ajout des lignes d'équipements
+  // Ajout des lignes d'équipements avec leurs émissions
   equipementRows.forEach(row => {
-    const emission = row.mode === "engin" ? equipementTotals.subtotalEngin : equipementTotals.subtotalAppareil;
+    const emission = row.emission || 0;
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td>${row.engin || "-"}</td>
-      <td>${row.type_engin || (row.mode==="appareil" ? "Appareil" : "-")}</td>
+      <td>${row.type_engin || (row.mode === "appareil" ? "Appareil" : "-")}</td>
       <td>${row.scope || "-"}</td>
-      <td>${emission ? emission.toFixed(2) : "-"}</td>
-      <td>${row.mode==="engin" ? row.carburant || "-" : row.unite || "-"}</td>
+      <td>${emission.toFixed(2)}</td>
+      <td>${row.mode === "engin" ? row.carburant || "-" : row.unite || "-"}</td>
     `;
     detailBody.appendChild(tr);
   });
 
-  // Si tu veux, on peut aussi ajouter une ligne **sous-total** pour Engins et Appareils
-  const subtotalEnginTr = document.createElement("tr");
-  subtotalEnginTr.innerHTML = `<td colspan="3"><b>Sous-total Engins</b></td><td colspan="2">${equipementTotals.subtotalEngin.toFixed(2)}</td>`;
-  detailBody.appendChild(subtotalEnginTr);
 
-  const subtotalAppTr = document.createElement("tr");
-  subtotalAppTr.innerHTML = `<td colspan="3"><b>Sous-total Appareils</b></td><td colspan="2">${equipementTotals.subtotalAppareil.toFixed(2)}</td>`;
-  detailBody.appendChild(subtotalAppTr);
-
-  const totalEquipTr = document.createElement("tr");
-  totalEquipTr.innerHTML = `<td colspan="3"><b>Total Équipements</b></td><td colspan="2">${equipementTotals.totalGeneral.toFixed(2)}</td>`;
-  detailBody.appendChild(totalEquipTr);
 }
 
+// --- PDF & Quit ---
 function downloadPDF() {
   const element = document.getElementById("report");
   if (!element) { alert("Le contenu du rapport est introuvable."); return; }
@@ -510,7 +517,6 @@ function clearAndQuit() {
 
 window.onload = loadData;
 </script>
-
 
 
 <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
