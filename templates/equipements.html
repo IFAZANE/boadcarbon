@@ -324,7 +324,6 @@ td:nth-child(5) input {
   </main>
 
 
-
 <script>
 let equipementRows = [];
 const enginsData = {{ engins_equipements | tojson }};
@@ -356,6 +355,17 @@ const feMat = {
     bois: 0.26900
 };
 
+// ---------- Densités par défaut (kg/cm³) ----------
+const defaultDensities = {
+    beton: 0.0024,
+    briques: 0.0019,
+    bois: 0.0006,
+    isolation: 0.00003,
+    gravats: 0.0015,
+    asphalte: 0.0023,
+    amiante: 0.0026
+};
+
 // ---------- Compute Emissions ----------
 function computeEmissions(row) {
     let total = 0;
@@ -381,7 +391,8 @@ function computeEmissions(row) {
         const FE = feMat[mat] || 0;
         const surface = parseNum(row.longueur) * parseNum(row.largeur);
         const volume = surface * parseNum(row.epaisseur);
-        const masse = volume * parseNum(row.densite);
+        const densite = parseNum(row.densite) || defaultDensities[mat] || 0;
+        const masse = volume * densite;
         total = masse * FE * parseNum(row.quantite);
     }
     return total;
@@ -438,7 +449,6 @@ function renderTable() {
                         input.addEventListener('change', e => { row[field] = e.target.value; updateEmissionRow(rowIndex, cat); });
                     } else {
                         input.type = "number"; input.step="any"; input.min="0";
-                        // <-- Nouveaux placeholders
                         if(field==="puissance") input.placeholder="Puissance CV";
                         else if(field==="duree") input.placeholder="Durée par jour (h)";
                         else if(field==="jours") input.placeholder="Nombre de jours";
@@ -459,7 +469,6 @@ function renderTable() {
                     input.className='input-compact';
                     input.type = field==="engin" ? "text" : "number"; input.step="any"; input.min="0";
 
-                    // <-- Nouveaux placeholders
                     if(field==="puissance") input.placeholder="Puissance en W";
                     else if(field==="duree") input.placeholder="Durée par jour (h)";
                     else if(field==="jours") input.placeholder="Nombre de jours";
@@ -481,10 +490,22 @@ function renderTable() {
                     if(input.tagName==="SELECT"){
                         if(field==="type_construction") input.innerHTML=`<option value="">Type</option><option value="route">Route</option><option value="dalle">Dalle</option><option value="mur">Mur</option>`;
                         else input.innerHTML=`<option value="">Matériau</option><option value="beton">Béton</option><option value="asphalte">Asphalte</option><option value="briques">Briques</option><option value="gravats">Gravats</option><option value="isolation">Isolation</option><option value="amiante">Amiante</option><option value="bois">Bois</option>`;
-                        input.addEventListener('change', e=>{ row[field]=e.target.value; updateEmissionRow(rowIndex, cat); });
+                        input.value = row[field] || '';
+                        input.addEventListener('change', e=>{
+                            row[field]=e.target.value;
+                            if(defaultDensities[row[field]]) row.densite = defaultDensities[row[field]];
+                            updateEmissionRow(rowIndex, cat);
+                            renderTable();
+                        });
                     } else {
                         input.type='number'; input.step='any'; input.min='0';
-                        input.placeholder=field;
+                        if(field==="longueur") input.placeholder="Longueur (cm)";
+                        else if(field==="largeur") input.placeholder="Largeur (cm)";
+                        else if(field==="epaisseur") input.placeholder="Épaisseur (cm)";
+                        else if(field==="densite") input.placeholder="kg/cm³";
+                        else input.placeholder=field;
+
+                        input.value = row[field] || (field==="densite" && defaultDensities[row.materiau]) || '';
                         input.addEventListener('input', e=>{ row[field]=parseNum(e.target.value); updateEmissionRow(rowIndex, cat); });
                     }
                     tdEngin.appendChild(input);
@@ -604,4 +625,3 @@ document.addEventListener('DOMContentLoaded',()=>{
 
 </body>
 </html>
-
