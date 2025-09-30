@@ -485,7 +485,7 @@ async function loadData() {
   detailBody.innerHTML = "";
 
   equipementRows.forEach(row => {
-    const emission = (row.emission || 0) / 1000; // conversion
+    const emission = (row.emission || 0) ; 
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td>${row.engin || "-"}</td>
@@ -523,4 +523,5 @@ window.onload = loadData;
 
 </body>
 </html>
+
 
