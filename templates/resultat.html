@@ -420,7 +420,6 @@ async function loadData() {
   if (data.equipements) {
     equipementRows = data.equipements;
 
-    // Calcul des sous-totaux par type (toujours en kg dans les données brutes)
     equipementTotals.subtotalEngin = equipementRows
       .filter(r => r.mode === 'engin')
       .reduce((acc, r) => acc + (r.emission || 0), 0);
@@ -460,7 +459,7 @@ async function loadData() {
   document.getElementById("emission-nette").innerHTML = `<strong>= ${totalNet.toFixed(3)} tCO₂e</strong>`;
 
   // --- Graphique (données en tCO2e) ---
-  const baseColors = ["#004B87", "#006837", "#f0ad4e"];
+  const baseColors = ["#004B87", "#006837", "#f0ad4e", "#8e44ad"];
   const categorieColors = Object.keys(categorieTotals).map((_, i) => baseColors[i % baseColors.length]);
 
   new Chart(document.getElementById("emissionChartDoughnut"), {
@@ -480,12 +479,13 @@ async function loadData() {
     }
   });
 
-  // --- Détails équipements (convertis en tCO2e) ---
+  // --- Détails équipements & transport (convertis en tCO2e) ---
   const detailBody = document.getElementById("details-table");
   detailBody.innerHTML = "";
 
+  // Equipements
   equipementRows.forEach(row => {
-    const emission = (row.emission || 0) ; 
+    const emission = (row.emission || 0) / 1000; 
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td>${row.engin || "-"}</td>
@@ -496,6 +496,30 @@ async function loadData() {
     `;
     detailBody.appendChild(tr);
   });
+
+  // Transport
+  if (data.transportRows && Array.isArray(data.transportRows)) {
+    data.transportRows.forEach(row => {
+      let emission = 0;
+      if (row.mode === "vehicule") {
+        const fe = { diesel: 2.68, essence: 2.31, gpl: 1.60, electrique: 0.233 };
+        const facteurEmission = fe[row.carburant] || 0;
+        emission = ((row.conso * row.distance * row.nombre) / 100) * facteurEmission;
+      } else {
+        emission = ((row.facteur || 0) * (row.distance || 0) * (row.nombre || 1));
+      }
+
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${row.nom || row.engin || "-"}</td>
+        <td>${row.mode === "vehicule" ? "Véhicule" : "Engin"}</td>
+        <td>${row.scope || "-"}</td>
+        <td>${(emission / 1000).toFixed(3)} tCO₂e</td>
+        <td>${row.mode === "vehicule" ? (row.carburant || "-") : (row.typeTransport || "-")}</td>
+      `;
+      detailBody.appendChild(tr);
+    });
+  }
 
 }
 
@@ -523,5 +547,6 @@ window.onload = loadData;
 
 </body>
 </html>
+
 
 
