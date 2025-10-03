@@ -622,16 +622,18 @@ function renderTable() {
   trTotal.innerHTML = `<td colspan="5">Total</td><td colspan="2"><span>${total.toFixed(2)}</span> kgCO₂e</td>`;
   tbody.appendChild(trTotal);
 
-  // Sauvegarde
+  // Sauvegarde session
   sessionStorage.setItem('transportRows', JSON.stringify(transportRows));
+
+  // Sauvegarde locale (pour page résultats)
+  let emissionData = JSON.parse(localStorage.getItem("emissionData") || "{}");
+  emissionData.transport = total;              // total global en kgCO₂e
+  emissionData.transportRows = transportRows;  // détails ligne par ligne
+  localStorage.setItem("emissionData", JSON.stringify(emissionData));
 }
 
 function suivant() {
-  // Exemple 1 : rediriger vers la page suivante
   window.location.href = "{{ url_for('energie') }}";
-
-  // Exemple 2 : juste afficher un message
-  // alert("Bouton 'Étape suivante' cliqué !");
 }
 
 // ---------- Init ----------
@@ -641,6 +643,7 @@ document.addEventListener('DOMContentLoaded', () => {
   renderTable();
 });
 </script>
+
 
 
 
@@ -665,4 +668,5 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
+
 
