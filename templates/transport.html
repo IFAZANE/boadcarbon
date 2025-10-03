@@ -303,7 +303,7 @@ function afficherDescription(description) {
 
 function saveAndRender() { renderTable(); }
 
-function focusNextInput(current, backwards=false) {
+function focusNextInput(current, backwards = false) {
   const inputs = Array.from(document.querySelectorAll('input, select'));
   const idx = inputs.indexOf(current);
   if (idx !== -1) {
@@ -353,6 +353,8 @@ function renderTable() {
   const tbody = document.getElementById('transportBody');
   tbody.innerHTML = '';
 
+  const fe = { diesel: 2.68, essence: 2.31, gpl: 1.60, electrique: 0.233 }; // Facteurs d'émission globaux pour véhicule
+
   scopes.forEach(scope => {
     const trTitle = document.createElement('tr');
     trTitle.className = 'section-title';
@@ -374,10 +376,16 @@ function renderTable() {
           input.type = type;
           input.placeholder = placeholder;
           input.value = value || '';
-          input.oninput = e => { onChange(e.target.value); sessionStorage.setItem('transportRows', JSON.stringify(transportRows)); };
+          input.oninput = e => {
+            onChange(e.target.value);
+            sessionStorage.setItem('transportRows', JSON.stringify(transportRows));
+          };
           input.onblur = () => saveAndRender();
           input.addEventListener("keydown", e => {
-            if (e.key === "Enter") { e.preventDefault(); focusNextInput(e.target, e.shiftKey); }
+            if (e.key === "Enter") {
+              e.preventDefault();
+              focusNextInput(e.target, e.shiftKey);
+            }
           });
           return input;
         };
@@ -397,35 +405,38 @@ function renderTable() {
           if (row.carburant === c) opt.selected = true;
           selectCarburant.appendChild(opt);
         });
-        selectCarburant.onchange = e => { row.carburant = e.target.value; saveAndRender(); };
-        selectCarburant.addEventListener("keydown", e => { if(e.key==="Enter"){e.preventDefault();focusNextInput(e.target,e.shiftKey);} });
+        selectCarburant.onchange = e => {
+          row.carburant = e.target.value;
+          saveAndRender();
+        };
+        selectCarburant.addEventListener("keydown", e => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            focusNextInput(e.target, e.shiftKey);
+          }
+        });
         tdCarb.appendChild(selectCarburant);
         tr.appendChild(tdCarb);
 
         // Conso
         const tdConso = document.createElement('td');
-        tdConso.appendChild(makeInput("number", "Conso (L/100km ou kWh/100km)", row.conso, v => row.conso = parseFloat(v)||0));
+        tdConso.appendChild(makeInput("number", "Conso (L/100km ou kWh/100km)", row.conso, v => row.conso = parseFloat(v) || 0));
         tr.appendChild(tdConso);
 
         // Distance
         const tdDist = document.createElement('td');
-        tdDist.appendChild(makeInput("number", "Distance (km)", row.distance, v => row.distance = parseFloat(v)||0));
+        tdDist.appendChild(makeInput("number", "Distance (km)", row.distance, v => row.distance = parseFloat(v) || 0));
         tr.appendChild(tdDist);
 
         // Nombre
         const tdNb = document.createElement('td');
-        tdNb.appendChild(makeInput("number", "Nb véhicules", row.nombre, v => row.nombre = parseInt(v)||1));
+        tdNb.appendChild(makeInput("number", "Nb véhicules", row.nombre, v => row.nombre = Math.max(1, parseInt(v) || 1)));
         tr.appendChild(tdNb);
 
         // Émissions
         const tdEm = document.createElement('td');
-        const fe = { diesel: 2.68, essence: 2.31, gpl: 1.60, electrique: 0.075 };
-        let emissions = 0;
-        if (row.carburant === "electrique") {
-          emissions = ((row.conso * row.distance * row.nombre)/100) * fe.electrique;
-        } else {
-          emissions = ((row.conso * row.distance * row.nombre)/100) * fe[row.carburant];
-        }
+        const facteurEmission = fe[row.carburant] || 0;
+        const emissions = ((row.conso * row.distance * row.nombre) / 100) * facteurEmission;
         tdEm.textContent = emissions.toFixed(2);
         tr.appendChild(tdEm);
 
@@ -434,7 +445,10 @@ function renderTable() {
         const btnDelete = document.createElement('button');
         btnDelete.className = 'action-btn';
         btnDelete.textContent = '🗑️';
-        btnDelete.onclick = () => { transportRows.splice(transportRows.indexOf(row),1); saveAndRender(); };
+        btnDelete.onclick = () => {
+          transportRows.splice(transportRows.indexOf(row), 1);
+          saveAndRender();
+        };
         tdAction.appendChild(btnDelete);
         tr.appendChild(tdAction);
 
@@ -447,10 +461,18 @@ function renderTable() {
       const tdType = document.createElement('td');
       const selectTypeTransport = document.createElement('select');
       selectTypeTransport.innerHTML = `
-        <option value="personne" ${row.typeTransport==='personne'?'selected':''}>Personnes</option>
-        <option value="marchandise" ${row.typeTransport==='marchandise'?'selected':''}>Marchandises</option>
+        <option value="personne" ${row.typeTransport === 'personne' ? 'selected' : ''}>Personnes</option>
+        <option value="marchandise" ${row.typeTransport === 'marchandise' ? 'selected' : ''}>Marchandises</option>
       `;
-      selectTypeTransport.onchange = e => { row.typeTransport = e.target.value; row.categorie=''; row.engin=''; row.facteur=0; afficherDescription(''); saveAndRender(); };
+      selectTypeTransport.onchange = e => {
+        row.typeTransport = e.target.value;
+        row.categorie = '';
+        row.engin = '';
+        row.facteur = 0;
+        row.type_engin_id = null;
+        afficherDescription('');
+        saveAndRender();
+      };
       tdType.appendChild(selectTypeTransport);
       tr.appendChild(tdType);
 
@@ -458,32 +480,59 @@ function renderTable() {
       const tdCat = document.createElement('td');
       const selectCat = document.createElement('select');
       selectCat.innerHTML = `<option value="">-- Choisir une catégorie --</option>`;
-      if(enginsData[scope] && enginsData[scope][row.typeTransport]) {
-        Object.keys(enginsData[scope][row.typeTransport]).forEach(cat=>{
-          const opt = document.createElement('option'); opt.value=cat; opt.textContent=cat;
-          if(cat===row.categorie) opt.selected=true;
+      if (enginsData[scope] && enginsData[scope][row.typeTransport]) {
+        Object.keys(enginsData[scope][row.typeTransport]).forEach(cat => {
+          const opt = document.createElement('option');
+          opt.value = cat;
+          opt.textContent = cat;
+          if (cat === row.categorie) opt.selected = true;
           selectCat.appendChild(opt);
         });
       }
-      selectCat.onchange = e => { row.categorie=e.target.value; row.engin=''; row.facteur=0; row.type_engin_id=null; afficherDescription(''); saveAndRender(); };
+      selectCat.onchange = e => {
+        row.categorie = e.target.value;
+        row.engin = '';
+        row.facteur = 0;
+        row.type_engin_id = null;
+        afficherDescription('');
+        saveAndRender();
+      };
       tdCat.appendChild(selectCat);
       tr.appendChild(tdCat);
 
       // Engin
       const tdEng = document.createElement('td');
       const selectEng = document.createElement('select');
-      selectEng.innerHTML=`<option value="">-- Choisir un engin --</option>`;
-      if(row.categorie && enginsData[scope] && enginsData[scope][row.typeTransport] && enginsData[scope][row.typeTransport][row.categorie]){
-        enginsData[scope][row.typeTransport][row.categorie].forEach(engObj=>{
-          const opt=document.createElement('option'); opt.value=engObj.nom; opt.textContent=engObj.nom;
-          if(engObj.nom===row.engin) opt.selected=true;
+      selectEng.innerHTML = `<option value="">-- Choisir un engin --</option>`;
+      if (
+        row.categorie &&
+        enginsData[scope] &&
+        enginsData[scope][row.typeTransport] &&
+        enginsData[scope][row.typeTransport][row.categorie]
+      ) {
+        enginsData[scope][row.typeTransport][row.categorie].forEach(engObj => {
+          const opt = document.createElement('option');
+          opt.value = engObj.nom;
+          opt.textContent = engObj.nom;
+          if (engObj.nom === row.engin) opt.selected = true;
           selectEng.appendChild(opt);
         });
       }
       selectEng.onchange = e => {
-        const sel = e.target.value; row.engin=sel;
-        const eng = enginsData[scope][row.typeTransport][row.categorie].find(en=>en.nom===sel);
-        if(eng){ row.facteur=eng.facteur; row.description=eng.description; row.type_engin_id=eng.id; afficherDescription(row.description); }
+        const sel = e.target.value;
+        row.engin = sel;
+        const eng = enginsData[scope][row.typeTransport][row.categorie].find(en => en.nom === sel);
+        if (eng) {
+          row.facteur = eng.facteur;
+          row.description = eng.description;
+          row.type_engin_id = eng.id;
+          afficherDescription(row.description);
+        } else {
+          row.facteur = 0;
+          row.description = '';
+          row.type_engin_id = null;
+          afficherDescription('');
+        }
         saveAndRender();
       };
       tdEng.appendChild(selectEng);
@@ -491,59 +540,91 @@ function renderTable() {
 
       // Nombre
       const tdNb = document.createElement('td');
-      const inputNb=document.createElement('input'); inputNb.type='number'; inputNb.min='1'; inputNb.value=row.nombre||1; inputNb.style.width='70px';
-      inputNb.oninput=e=>{ row.nombre=parseInt(e.target.value)||1; sessionStorage.setItem('transportRows',JSON.stringify(transportRows)); };
-      inputNb.onblur=()=>saveAndRender();
+      const inputNb = document.createElement('input');
+      inputNb.type = 'number';
+      inputNb.min = '1';
+      inputNb.value = row.nombre || 1;
+      inputNb.style.width = '70px';
+      inputNb.oninput = e => {
+        row.nombre = Math.max(1, parseInt(e.target.value) || 1);
+        sessionStorage.setItem('transportRows', JSON.stringify(transportRows));
+      };
+      inputNb.onblur = () => saveAndRender();
       tdNb.appendChild(inputNb);
       tr.appendChild(tdNb);
 
       // Distance
-      const tdDist=document.createElement('td');
-      const inputDist=document.createElement('input'); inputDist.type='number'; inputDist.min='0'; inputDist.step='0.1'; inputDist.value=row.distance||0; inputDist.style.width='100px';
-      inputDist.oninput=e=>{ row.distance=parseFloat(e.target.value)||0; sessionStorage.setItem('transportRows',JSON.stringify(transportRows)); };
-      inputDist.onblur=()=>saveAndRender();
+      const tdDist = document.createElement('td');
+      const inputDist = document.createElement('input');
+      inputDist.type = 'number';
+      inputDist.min = '0';
+      inputDist.step = '0.1';
+      inputDist.value = row.distance || 0;
+      inputDist.style.width = '100px';
+      inputDist.oninput = e => {
+        row.distance = parseFloat(e.target.value) || 0;
+        sessionStorage.setItem('transportRows', JSON.stringify(transportRows));
+      };
+      inputDist.onblur = () => saveAndRender();
       tdDist.appendChild(inputDist);
       tr.appendChild(tdDist);
 
       // Émissions
-      const tdEm=document.createElement('td'); tdEm.textContent=((row.facteur||0)*(row.distance||0)*(row.nombre||1)).toFixed(2);
+      const tdEm = document.createElement('td');
+      const emissionsEngin = ((row.facteur || 0) * (row.distance || 0) * (row.nombre || 1));
+      tdEm.textContent = emissionsEngin.toFixed(2);
       tr.appendChild(tdEm);
 
       // Supprimer
-      const tdAction=document.createElement('td'); const btnDel=document.createElement('button'); btnDel.className='action-btn'; btnDel.textContent='🗑️';
-      btnDel.onclick=()=>{ transportRows.splice(transportRows.indexOf(row),1); afficherDescription(''); saveAndRender(); };
-      tdAction.appendChild(btnDel); tr.appendChild(tdAction);
+      const tdAction = document.createElement('td');
+      const btnDel = document.createElement('button');
+      btnDel.className = 'action-btn';
+      btnDel.textContent = '🗑️';
+      btnDel.onclick = () => {
+        transportRows.splice(transportRows.indexOf(row), 1);
+        afficherDescription('');
+        saveAndRender();
+      };
+      tdAction.appendChild(btnDel);
+      tr.appendChild(tdAction);
 
       tbody.appendChild(tr);
     });
 
-    // Sous-total
-    const sousTotal=rowsFiltered.reduce((acc,r)=>{
-      if(r.mode==="vehicule"){
-        if(r.carburant==="electrique") return acc+((r.conso*r.distance*r.nombre)/100*0.075);
-        else return acc+((r.conso*r.distance*r.nombre)/100*{diesel:2.68,essence:2.31,gpl:1.6}[r.carburant]);
-      } else return acc+((r.facteur||0)*(r.distance||0)*(r.nombre||1));
-    },0);
-    const trSubtotal=document.createElement('tr'); trSubtotal.className='subtotal-row '+scope.replace(' ','-');
-    trSubtotal.innerHTML=`<td colspan="5">Sous-total ${scope==="scope_2"?"Véhicules":scope}</td><td colspan="2"><span>${sousTotal.toFixed(2)}</span> kgCO₂e</td>`;
+    // Sous-total par scope
+    const sousTotal = rowsFiltered.reduce((acc, r) => {
+      if (r.mode === "vehicule") {
+        const feScope = fe[r.carburant] || 0;
+        return acc + ((r.conso * r.distance * r.nombre) / 100 * feScope);
+      } else {
+        return acc + ((r.facteur || 0) * (r.distance || 0) * (r.nombre || 1));
+      }
+    }, 0);
+
+    const trSubtotal = document.createElement('tr');
+    trSubtotal.className = 'subtotal-row ' + scope.replace(' ', '-');
+    trSubtotal.innerHTML = `<td colspan="5">Sous-total ${scope === "scope_2" ? "Véhicules" : scope}</td><td colspan="2"><span>${sousTotal.toFixed(2)}</span> kgCO₂e</td>`;
     tbody.appendChild(trSubtotal);
   });
 
   // Total global
-  const total=transportRows.reduce((acc,r)=>{
-    if(r.mode==="vehicule"){
-      if(r.carburant==="electrique") return acc+((r.conso*r.distance*r.nombre)/100*0.233);
-      else return acc+((r.conso*r.distance*r.nombre)/100*{diesel:2.68,essence:2.31,gpl:1.6}[r.carburant]);
-    } else return acc+((r.facteur||0)*(r.distance||0)*(r.nombre||1));
-  },0);
-  const trTotal=document.createElement('tr'); trTotal.className='total-row';
-  trTotal.innerHTML=`<td colspan="5">Total</td><td colspan="2"><span>${total.toFixed(2)}</span> kgCO₂e</td>`;
+  const total = transportRows.reduce((acc, r) => {
+    if (r.mode === "vehicule") {
+      const feGlobal = fe[r.carburant] || 0;
+      return acc + ((r.conso * r.distance * r.nombre) / 100 * feGlobal);
+    } else {
+      return acc + ((r.facteur || 0) * (r.distance || 0) * (r.nombre || 1));
+    }
+  }, 0);
+
+  const trTotal = document.createElement('tr');
+  trTotal.className = 'total-row';
+  trTotal.innerHTML = `<td colspan="5">Total</td><td colspan="2"><span>${total.toFixed(2)}</span> kgCO₂e</td>`;
   tbody.appendChild(trTotal);
 
   // Sauvegarde
-  sessionStorage.setItem('transportRows',JSON.stringify(transportRows));
+  sessionStorage.setItem('transportRows', JSON.stringify(transportRows));
 }
-
 
 function suivant() {
   // Exemple 1 : rediriger vers la page suivante
@@ -554,12 +635,13 @@ function suivant() {
 }
 
 // ---------- Init ----------
-document.addEventListener('DOMContentLoaded',()=>{
-  const saved=sessionStorage.getItem('transportRows');
-  if(saved) transportRows=JSON.parse(saved);
+document.addEventListener('DOMContentLoaded', () => {
+  const saved = sessionStorage.getItem('transportRows');
+  if (saved) transportRows = JSON.parse(saved);
   renderTable();
 });
 </script>
+
 
 
 
@@ -583,3 +665,4 @@ document.addEventListener('DOMContentLoaded',()=>{
 
 </body>
 </html>
+
