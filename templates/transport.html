@@ -263,7 +263,7 @@
     <div class="add-buttons">
       <button type="button" onclick="addTransportRow('scope_1')">➕ Ajouter Scope 1</button>
       <button type="button" onclick="addTransportRow('scope_3')">➕ Ajouter Scope 3</button>
-<!--      <button type="button" onclick="addVehiculeRow('scope_2')">➕ Ajouter Véhicule</button>-->
+      <button type="button" onclick="addVehiculeRow('scope_2')">➕ Ajouter Véhicule</button>
     </div>
 
     <table id="transportTable">
@@ -418,7 +418,7 @@ function renderTable() {
 
         // Émissions
         const tdEm = document.createElement('td');
-        const fe = { diesel: 2.68, essence: 2.31, gpl: 1.60, electrique: 0.075 };
+        const fe = { diesel: 2.68, essence: 2.31, gpl: 1.60, electrique: 0.233 };
         let emissions = 0;
         if (row.carburant === "electrique") {
           emissions = ((row.conso * row.distance * row.nombre)/100) * fe.electrique;
@@ -519,7 +519,7 @@ function renderTable() {
     // Sous-total
     const sousTotal=rowsFiltered.reduce((acc,r)=>{
       if(r.mode==="vehicule"){
-        if(r.carburant==="electrique") return acc+((r.conso*r.distance*r.nombre)/100*0.075);
+        if(r.carburant==="electrique") return acc+((r.conso*r.distance*r.nombre)/100*0.233);
         else return acc+((r.conso*r.distance*r.nombre)/100*{diesel:2.68,essence:2.31,gpl:1.6}[r.carburant]);
       } else return acc+((r.facteur||0)*(r.distance||0)*(r.nombre||1));
     },0);
