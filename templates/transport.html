@@ -601,10 +601,7 @@ function renderTable() {
       }
     }, 0);
 
-    const trSubtotal = document.createElement('tr');
-    trSubtotal.className = 'subtotal-row ' + scope.replace(' ', '-');
-    trSubtotal.innerHTML = `<td colspan="5">Sous-total ${scope === "scope_2" ? "Véhicules" : scope}</td><td colspan="2"><span>${sousTotal.toFixed(2)}</span> kgCO₂e</td>`;
-    tbody.appendChild(trSubtotal);
+   
   });
 
   // Total global
@@ -668,5 +665,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
+
 
 
