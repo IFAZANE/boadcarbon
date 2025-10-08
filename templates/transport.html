@@ -390,10 +390,7 @@ function renderTable() {
           return input;
         };
 
-        // Nom
-        const tdNom = document.createElement('td');
-        tdNom.appendChild(makeInput("text", "Nom du véhicule", row.nom, v => row.nom = v));
-        tr.appendChild(tdNom);
+       
 
         // Carburant
         const tdCarb = document.createElement('td');
@@ -665,6 +662,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
+
 
 
 
