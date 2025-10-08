@@ -489,11 +489,11 @@ function renderTable() {
                         else input.innerHTML=`<option value="">Matériau</option><option value="beton">Béton</option><option value="asphalte">Asphalte</option><option value="briques">Briques</option><option value="gravats">Gravats</option><option value="isolation">Isolation</option><option value="amiante">Amiante</option><option value="bois">Bois</option><option value="pave">Pavé</option>`;
                         input.addEventListener('change', e => {
                             row[field]=e.target.value;
-                            if(defaultDensities[row[field]]) row.densite = defaultDensities[row[field]];
-                            updateEmissionRow(rowIndex, cat);
-                            saveToStorage();
-                            commitEmissionData();
-                            renderTable();
+                           if (defaultDensities[row[field]]) row.densite = defaultDensities[row[field]];
+updateEmissionRow(rowIndex, cat);
+saveToStorage();
+commitEmissionData();
+
                         });
                     } else {
                         input.type='number'; input.step='any'; input.min='0';
@@ -622,3 +622,4 @@ document.addEventListener('DOMContentLoaded', ()=>{
 
 </body>
 </html>
+
