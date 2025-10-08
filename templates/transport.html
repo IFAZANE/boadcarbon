@@ -349,109 +349,7 @@ function addTransportRow(scope) {
 }
 
 // ---------- Rendu du tableau ----------
-function renderTable() {
-  const tbody = document.getElementById('transportBody');
-  tbody.innerHTML = '';
 
-  const fe = { diesel: 2.68, essence: 2.31, gpl: 1.60, electrique: 0.233 }; // Facteurs d'émission globaux pour véhicule
-
-  scopes.forEach(scope => {
-    const trTitle = document.createElement('tr');
-    trTitle.className = 'section-title';
-    const tdTitle = document.createElement('td');
-    tdTitle.colSpan = 7;
-    tdTitle.textContent = scope === "scope_2" ? "Véhicules" : scope.charAt(0).toUpperCase() + scope.slice(1).replace('_', ' ');
-    trTitle.appendChild(tdTitle);
-    tbody.appendChild(trTitle);
-
-    const rowsFiltered = transportRows.filter(r => r.scope === scope);
-
-    rowsFiltered.forEach(row => {
-      const tr = document.createElement('tr');
-
-      if (row.mode === "vehicule") {
-        // VEHICULE
-        const makeInput = (type, placeholder, value, onChange) => {
-          const input = document.createElement('input');
-          input.type = type;
-          input.placeholder = placeholder;
-          input.value = value || '';
-          input.oninput = e => {
-            onChange(e.target.value);
-            sessionStorage.setItem('transportRows', JSON.stringify(transportRows));
-          };
-          input.onblur = () => saveAndRender();
-          input.addEventListener("keydown", e => {
-            if (e.key === "Enter") {
-              e.preventDefault();
-              focusNextInput(e.target, e.shiftKey);
-            }
-          });
-          return input;
-        };
-
-       
-
-        // Carburant
-        const tdCarb = document.createElement('td');
-        const selectCarburant = document.createElement('select');
-        ["diesel", "essence", "gpl", "electrique"].forEach(c => {
-          const opt = document.createElement("option");
-          opt.value = c;
-          opt.textContent = c.charAt(0).toUpperCase() + c.slice(1);
-          if (row.carburant === c) opt.selected = true;
-          selectCarburant.appendChild(opt);
-        });
-        selectCarburant.onchange = e => {
-          row.carburant = e.target.value;
-          saveAndRender();
-        };
-        selectCarburant.addEventListener("keydown", e => {
-          if (e.key === "Enter") {
-            e.preventDefault();
-            focusNextInput(e.target, e.shiftKey);
-          }
-        });
-        tdCarb.appendChild(selectCarburant);
-        tr.appendChild(tdCarb);
-
-        // Conso
-        const tdConso = document.createElement('td');
-        tdConso.appendChild(makeInput("number", "Conso (L/100km ou kWh/100km)", row.conso, v => row.conso = parseFloat(v) || 0));
-        tr.appendChild(tdConso);
-
-        // Distance
-        const tdDist = document.createElement('td');
-        tdDist.appendChild(makeInput("number", "Distance (km)", row.distance, v => row.distance = parseFloat(v) || 0));
-        tr.appendChild(tdDist);
-
-        // Nombre
-        const tdNb = document.createElement('td');
-        tdNb.appendChild(makeInput("number", "Nb véhicules", row.nombre, v => row.nombre = Math.max(1, parseInt(v) || 1)));
-        tr.appendChild(tdNb);
-
-        // Émissions
-        const tdEm = document.createElement('td');
-        const facteurEmission = fe[row.carburant] || 0;
-        const emissions = ((row.conso * row.distance * row.nombre) / 100) * facteurEmission;
-        tdEm.textContent = emissions.toFixed(2);
-        tr.appendChild(tdEm);
-
-        // Supprimer
-        const tdAction = document.createElement('td');
-        const btnDelete = document.createElement('button');
-        btnDelete.className = 'action-btn';
-        btnDelete.textContent = '🗑️';
-        btnDelete.onclick = () => {
-          transportRows.splice(transportRows.indexOf(row), 1);
-          saveAndRender();
-        };
-        tdAction.appendChild(btnDelete);
-        tr.appendChild(tdAction);
-
-        tbody.appendChild(tr);
-        return;
-      }
 
       // ---------- MODE ENGIN ----------
       // Type Transport
@@ -662,6 +560,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
+
 
 
 
