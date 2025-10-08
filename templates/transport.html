@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -22,83 +21,41 @@
       background: #fafafa;
     }
 
-<!--    body::before {-->
-<!--  content: "";-->
-<!--  position: fixed;-->
-<!--  top: 0;-->
-<!--  left: 0;-->
-<!--  height: 100%;-->
-<!--  width: 100%;-->
-<!--  background-image: url('{{ url_for('static', filename='logo-boad.webp') }}');-->
-<!--  background-size: cover;-->
-<!--  background-repeat: no-repeat;-->
-<!--  background-position: center;-->
-<!--  opacity: 0.1;-->
-<!--  z-index: -1;-->
-<!--}-->
-
-
-    /* ==== BARRE DE MENU HORIZONTALE ==== */
     header {
-  background-color: #006400; /* Vert foncé */
-  height: 80px;
-  padding: 0 1rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 1rem;
-  overflow: hidden;
-}
-
-    .header-left {
-  display: flex;
-  align-items: center;
-  height: 100%;
-}
-
-.header-left img {
-  height: 120px;
-  width: auto;
-  display: block;
-  object-fit: contain;
-}
-
-    .header-center {
-      flex-grow: 1;
-      min-width: 250px;
-      text-align: center;
+      background-color: #006400;
+      height: 80px;
+      padding: 0 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+      overflow: hidden;
     }
+
+    .header-left img {
+      height: 120px;
+      width: auto;
+      object-fit: contain;
+    }
+
     .header-center h1 {
       margin: 0;
       font-weight: 700;
       font-size: 1.75rem;
       color: #fff;
-      user-select: none;
     }
-    nav.header-nav {
-      display: flex;
-      gap: 1rem;
-      flex-wrap: wrap;
-    }
+
     nav.header-nav a {
       color: #fff;
       text-decoration: none;
       font-weight: 600;
       padding: 0.6rem 1.2rem;
       border-radius: 8px;
-      transition: background-color 0.3s ease, color 0.3s ease;
-      white-space: nowrap;
-      font-size: 1rem;
+      transition: background-color 0.3s ease;
     }
-    nav.header-nav a:hover,
-    nav.header-nav a:focus {
-      background-color: rgba(255, 255, 255, 0.3);
-      outline: none;
-      color: #ffebc2;
-    }
+    nav.header-nav a:hover { background-color: rgba(255,255,255,0.3); }
 
-    /* ==== CONTENU ==== */
     .main-content {
       max-width: 1100px;
       margin: 2rem auto;
@@ -124,63 +81,36 @@
       transition: background-color 0.3s ease;
       flex-grow: 1;
     }
-    .add-buttons button:hover {
-      background-color: var(--boad-yellow-dark);
-      color: #111;
-    }
+    .add-buttons button:hover { background-color: var(--boad-yellow-dark); }
 
     table {
       width: 100%;
       border-collapse: collapse;
-      border-radius: 6px;
-      overflow: hidden;
     }
     th, td {
       padding: 12px 15px;
       border: 1px solid #ddd;
-      text-align: left;
-      font-size: 14px;
     }
     th {
       background-color: var(--boad-red);
       color: white;
-      user-select: none;
     }
-
     tr.section-title td {
       background-color: #f4f4f4;
       font-weight: 700;
-      font-size: 16px;
       color: var(--boad-red-dark);
-      user-select: none;
-    }
-    tr.subtotal-row td {
-      background-color: #fff8dc;
-      font-weight: 600;
-      font-size: 15px;
-      color: var(--boad-red-dark);
-      user-select: none;
     }
     tr.total-row td {
       background-color: var(--boad-red);
       color: var(--white);
-      font-weight: bolder;
-      font-size: 16px;
-      user-select: none;
+      font-weight: bold;
     }
 
     select, input[type="number"] {
       width: 100%;
       padding: 6px 8px;
-      border-radius: 4px;
       border: 1px solid #ccc;
-      font-size: 14px;
-      transition: border-color 0.3s ease;
-    }
-    select:focus, input[type="number"]:focus {
-      border-color: var(--boad-red);
-      outline: none;
-      box-shadow: 0 0 5px var(--boad-red);
+      border-radius: 4px;
     }
 
     .action-btn {
@@ -189,148 +119,67 @@
       color: var(--boad-red);
       font-size: 18px;
       cursor: pointer;
-      user-select: none;
-      transition: color 0.3s ease;
     }
-    .action-btn:hover {
-      color: var(--boad-red-dark);
-    }
-
-    #enginDescription {
-      margin-top: 20px;
-      background: #fff3cc;
-      padding: 15px;
-      border-left: 6px solid var(--boad-yellow);
-      border-radius: 4px;
-      color: #5c3a00;
-      font-style: italic;
-      min-height: 50px;
-    }
-
-    /* Bouton quitter */
-    .quit-btn {
-      background-color: var(--boad-red-dark);
-      color: white;
-      padding: 0.6rem 1.2rem;
-      border: none;
-      border-radius: 6px;
-      font-weight: bold;
-      cursor: pointer;
-      transition: background-color 0.3s ease;
-    }
-    .quit-btn:hover {
-      background-color: #70121d;
-    }
-
-
-       body::before {
-    content: "";
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-image: url('{{ url_for("static", filename="logo-boad.webp") }}');
-    background-repeat: repeat;
-    background-size: 80px auto;
-    opacity: 0.08; /* très léger fond */
-    pointer-events: none;
-    z-index: -1;
-  }
-
   </style>
 </head>
 
 <body id="transportTableBody">
 
-  <!-- HEADER horizontal comme la page Contact -->
-  <header>
-   <div class="header-left">
+<header>
+  <div class="header-left">
     <img src="{{ url_for('static', filename='BOADCarbone.png') }}" alt="Logo BOAD" />
   </div>
-    <div class="header-center">
-      <h1>Transport – Émissions CO₂</h1>
-    </div>
-    <nav class="header-nav">
-      <a href="{{ url_for('index') }}">Accueil</a>
-      <a href="{{ url_for('apropos') }}">À propos</a>
-      <a href="{{ url_for('contact') }}">Contacts</a>
-      <a href="{{ url_for('aide') }}">Aide</a>
-    </nav>
-  </header>
+  <div class="header-center">
+    <h1>Transport – Émissions CO₂</h1>
+  </div>
+  <nav class="header-nav">
+    <a href="{{ url_for('index') }}">Accueil</a>
+    <a href="{{ url_for('apropos') }}">À propos</a>
+    <a href="{{ url_for('contact') }}">Contacts</a>
+    <a href="{{ url_for('aide') }}">Aide</a>
+  </nav>
+</header>
 
-  <main class="main-content">
-    <h2>Transport</h2>
-    <div class="add-buttons">
-      <button type="button" onclick="addTransportRow('scope_1')">➕ Ajouter Scope 1</button>
-      <button type="button" onclick="addTransportRow('scope_3')">➕ Ajouter Scope 3</button>
-<!--      <button type="button" onclick="addVehiculeRow('scope_2')">➕ Ajouter Véhicule</button>-->
-    </div>
+<main class="main-content">
+  <h2>Transport</h2>
+  <div class="add-buttons">
+    <button type="button" onclick="addTransportRow('scope_1')">➕ Ajouter Scope 1</button>
+    <button type="button" onclick="addTransportRow('scope_3')">➕ Ajouter Scope 3</button>
+  </div>
 
-    <table id="transportTable">
-      <thead>
-        <tr>
-          <th>Type de Transport</th>
-          <th>Type d'engin</th>
-          <th>Caractéristiques</th>
-          <th>Nombre</th>
-          <th>Distance (km)</th>
-          <th>Émissions (kgCO₂e)</th>
-          <th>Action</th>
-        </tr>
-      </thead>
-      <tbody id="transportBody"></tbody>
-    </table>
+  <table id="transportTable">
+    <thead>
+      <tr>
+        <th>Type de Transport</th>
+        <th>Type d'engin</th>
+        <th>Caractéristiques</th>
+        <th>Nombre</th>
+        <th>Distance (km)</th>
+        <th>Émissions (kgCO₂e)</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody id="transportBody"></tbody>
+  </table>
 
-    <div id="enginDescription"></div>
+  <div id="enginDescription"></div>
 
-    <div style="text-align: right; margin-top: 20px;">
-      <button style="background-color: var(--boad-yellow); padding: 12px 24px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;" onclick="suivant()">Étape suivante (1/3)→</button>
-    </div>
-  </main>
-
+  <div style="text-align: right; margin-top: 20px;">
+    <button style="background-color: var(--boad-yellow); padding: 12px 24px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;" onclick="suivant()">Étape suivante (1/3)→</button>
+  </div>
+</main>
 
 <script>
 let enginsData = {{ engins_json | safe }};
 let transportRows = [];
-const scopes = ["scope_1", "scope_2", "scope_3"];
+const scopes = ["scope_1", "scope_3"];
 
-// ---------- Helpers ----------
 function afficherDescription(description) {
-  const divDesc = document.getElementById('enginDescription');
-  divDesc.textContent = description || '';
+  document.getElementById('enginDescription').textContent = description || '';
 }
 
 function saveAndRender() { renderTable(); }
 
-function focusNextInput(current, backwards = false) {
-  const inputs = Array.from(document.querySelectorAll('input, select'));
-  const idx = inputs.indexOf(current);
-  if (idx !== -1) {
-    const next = backwards ? inputs[idx - 1] : inputs[idx + 1];
-    if (next) next.focus();
-  }
-}
-
-// ---------- Ajouter un véhicule ----------
-function addVehiculeRow(scope) {
-  transportRows.push({
-    scope,
-    mode: "vehicule",
-    nom: "",
-    carburant: "diesel",
-    conso: 0,
-    distance: 0,
-    nombre: 1
-  });
-  saveAndRender();
-  setTimeout(() => {
-    const lastRowInputs = document.querySelectorAll('#transportBody tr:last-child input, #transportBody tr:last-child select');
-    if (lastRowInputs.length > 0) lastRowInputs[0].focus();
-  }, 50);
-}
-
-// ---------- Ajouter un engin classique ----------
 function addTransportRow(scope) {
   transportRows.push({
     typeTransport: 'personne',
@@ -341,120 +190,29 @@ function addTransportRow(scope) {
     description: '',
     nombre: 1,
     distance: 0,
-    type_engin_id: null,
-    mode: "engin"
+    type_engin_id: null
   });
   afficherDescription('');
   saveAndRender();
 }
 
-// ---------- Rendu du tableau ----------
 function renderTable() {
   const tbody = document.getElementById('transportBody');
   tbody.innerHTML = '';
-
-  const fe = { diesel: 2.68, essence: 2.31, gpl: 1.60, electrique: 0.233 }; // Facteurs d'émission globaux pour véhicule
 
   scopes.forEach(scope => {
     const trTitle = document.createElement('tr');
     trTitle.className = 'section-title';
     const tdTitle = document.createElement('td');
     tdTitle.colSpan = 7;
-    tdTitle.textContent = scope === "scope_2" ? "Véhicules" : scope.charAt(0).toUpperCase() + scope.slice(1).replace('_', ' ');
+    tdTitle.textContent = scope.charAt(0).toUpperCase() + scope.slice(1).replace('_', ' ');
     trTitle.appendChild(tdTitle);
     tbody.appendChild(trTitle);
 
     const rowsFiltered = transportRows.filter(r => r.scope === scope);
-
     rowsFiltered.forEach(row => {
       const tr = document.createElement('tr');
 
-      if (row.mode === "vehicule") {
-        // VEHICULE
-        const makeInput = (type, placeholder, value, onChange) => {
-          const input = document.createElement('input');
-          input.type = type;
-          input.placeholder = placeholder;
-          input.value = value || '';
-          input.oninput = e => {
-            onChange(e.target.value);
-            sessionStorage.setItem('transportRows', JSON.stringify(transportRows));
-          };
-          input.onblur = () => saveAndRender();
-          input.addEventListener("keydown", e => {
-            if (e.key === "Enter") {
-              e.preventDefault();
-              focusNextInput(e.target, e.shiftKey);
-            }
-          });
-          return input;
-        };
-
-       
-
-        // Carburant
-        const tdCarb = document.createElement('td');
-        const selectCarburant = document.createElement('select');
-        ["diesel", "essence", "gpl", "electrique"].forEach(c => {
-          const opt = document.createElement("option");
-          opt.value = c;
-          opt.textContent = c.charAt(0).toUpperCase() + c.slice(1);
-          if (row.carburant === c) opt.selected = true;
-          selectCarburant.appendChild(opt);
-        });
-        selectCarburant.onchange = e => {
-          row.carburant = e.target.value;
-          saveAndRender();
-        };
-        selectCarburant.addEventListener("keydown", e => {
-          if (e.key === "Enter") {
-            e.preventDefault();
-            focusNextInput(e.target, e.shiftKey);
-          }
-        });
-        tdCarb.appendChild(selectCarburant);
-        tr.appendChild(tdCarb);
-
-        // Conso
-        const tdConso = document.createElement('td');
-        tdConso.appendChild(makeInput("number", "Conso (L/100km ou kWh/100km)", row.conso, v => row.conso = parseFloat(v) || 0));
-        tr.appendChild(tdConso);
-
-        // Distance
-        const tdDist = document.createElement('td');
-        tdDist.appendChild(makeInput("number", "Distance (km)", row.distance, v => row.distance = parseFloat(v) || 0));
-        tr.appendChild(tdDist);
-
-        // Nombre
-        const tdNb = document.createElement('td');
-        tdNb.appendChild(makeInput("number", "Nb véhicules", row.nombre, v => row.nombre = Math.max(1, parseInt(v) || 1)));
-        tr.appendChild(tdNb);
-
-        // Émissions
-        const tdEm = document.createElement('td');
-        const facteurEmission = fe[row.carburant] || 0;
-        const emissions = ((row.conso * row.distance * row.nombre) / 100) * facteurEmission;
-        tdEm.textContent = emissions.toFixed(2);
-        tr.appendChild(tdEm);
-
-        // Supprimer
-        const tdAction = document.createElement('td');
-        const btnDelete = document.createElement('button');
-        btnDelete.className = 'action-btn';
-        btnDelete.textContent = '🗑️';
-        btnDelete.onclick = () => {
-          transportRows.splice(transportRows.indexOf(row), 1);
-          saveAndRender();
-        };
-        tdAction.appendChild(btnDelete);
-        tr.appendChild(tdAction);
-
-        tbody.appendChild(tr);
-        return;
-      }
-
-      // ---------- MODE ENGIN ----------
-      // Type Transport
       const tdType = document.createElement('td');
       const selectTypeTransport = document.createElement('select');
       selectTypeTransport.innerHTML = `
@@ -473,7 +231,6 @@ function renderTable() {
       tdType.appendChild(selectTypeTransport);
       tr.appendChild(tdType);
 
-      // Catégorie
       const tdCat = document.createElement('td');
       const selectCat = document.createElement('select');
       selectCat.innerHTML = `<option value="">-- Choisir une catégorie --</option>`;
@@ -497,7 +254,6 @@ function renderTable() {
       tdCat.appendChild(selectCat);
       tr.appendChild(tdCat);
 
-      // Engin
       const tdEng = document.createElement('td');
       const selectEng = document.createElement('select');
       selectEng.innerHTML = `<option value="">-- Choisir un engin --</option>`;
@@ -535,13 +291,11 @@ function renderTable() {
       tdEng.appendChild(selectEng);
       tr.appendChild(tdEng);
 
-      // Nombre
       const tdNb = document.createElement('td');
       const inputNb = document.createElement('input');
       inputNb.type = 'number';
       inputNb.min = '1';
       inputNb.value = row.nombre || 1;
-      inputNb.style.width = '70px';
       inputNb.oninput = e => {
         row.nombre = Math.max(1, parseInt(e.target.value) || 1);
         sessionStorage.setItem('transportRows', JSON.stringify(transportRows));
@@ -550,14 +304,12 @@ function renderTable() {
       tdNb.appendChild(inputNb);
       tr.appendChild(tdNb);
 
-      // Distance
       const tdDist = document.createElement('td');
       const inputDist = document.createElement('input');
       inputDist.type = 'number';
       inputDist.min = '0';
       inputDist.step = '0.1';
       inputDist.value = row.distance || 0;
-      inputDist.style.width = '100px';
       inputDist.oninput = e => {
         row.distance = parseFloat(e.target.value) || 0;
         sessionStorage.setItem('transportRows', JSON.stringify(transportRows));
@@ -566,13 +318,11 @@ function renderTable() {
       tdDist.appendChild(inputDist);
       tr.appendChild(tdDist);
 
-      // Émissions
       const tdEm = document.createElement('td');
       const emissionsEngin = ((row.facteur || 0) * (row.distance || 0) * (row.nombre || 1));
       tdEm.textContent = emissionsEngin.toFixed(2);
       tr.appendChild(tdEm);
 
-      // Supprimer
       const tdAction = document.createElement('td');
       const btnDel = document.createElement('button');
       btnDel.className = 'action-btn';
@@ -587,42 +337,22 @@ function renderTable() {
 
       tbody.appendChild(tr);
     });
-
-    // Sous-total par scope
-    const sousTotal = rowsFiltered.reduce((acc, r) => {
-      if (r.mode === "vehicule") {
-        const feScope = fe[r.carburant] || 0;
-        return acc + ((r.conso * r.distance * r.nombre) / 100 * feScope);
-      } else {
-        return acc + ((r.facteur || 0) * (r.distance || 0) * (r.nombre || 1));
-      }
-    }, 0);
-
-   
   });
 
-  // Total global
-  const total = transportRows.reduce((acc, r) => {
-    if (r.mode === "vehicule") {
-      const feGlobal = fe[r.carburant] || 0;
-      return acc + ((r.conso * r.distance * r.nombre) / 100 * feGlobal);
-    } else {
-      return acc + ((r.facteur || 0) * (r.distance || 0) * (r.nombre || 1));
-    }
-  }, 0);
+  const total = transportRows.reduce((acc, r) =>
+    acc + ((r.facteur || 0) * (r.distance || 0) * (r.nombre || 1))
+  , 0);
 
   const trTotal = document.createElement('tr');
   trTotal.className = 'total-row';
   trTotal.innerHTML = `<td colspan="5">Total</td><td colspan="2"><span>${total.toFixed(2)}</span> kgCO₂e</td>`;
   tbody.appendChild(trTotal);
 
-  // Sauvegarde session
   sessionStorage.setItem('transportRows', JSON.stringify(transportRows));
 
-  // Sauvegarde locale (pour page résultats)
   let emissionData = JSON.parse(localStorage.getItem("emissionData") || "{}");
-  emissionData.transport = total;              // total global en kgCO₂e
-  emissionData.transportRows = transportRows;  // détails ligne par ligne
+  emissionData.transport = total;
+  emissionData.transportRows = transportRows;
   localStorage.setItem("emissionData", JSON.stringify(emissionData));
 }
 
@@ -630,7 +360,6 @@ function suivant() {
   window.location.href = "{{ url_for('energie') }}";
 }
 
-// ---------- Init ----------
 document.addEventListener('DOMContentLoaded', () => {
   const saved = sessionStorage.getItem('transportRows');
   if (saved) transportRows = JSON.parse(saved);
@@ -638,30 +367,18 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 
-
-
-
-
-
-
-<!-- Google Translate Widget -->
 <div id="google_translate_element" style="position: fixed; top: 10px; right: 10px; z-index: 9999;"></div>
-
 <script type="text/javascript">
   function googleTranslateElementInit() {
     new google.translate.TranslateElement({
       pageLanguage: 'fr',
-      includedLanguages: 'en,fr,pt,fon', // Tu peux ajouter d'autres langues ici
+      includedLanguages: 'en,fr,pt,fon',
       layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
       autoDisplay: false
     }, 'google_translate_element');
   }
 </script>
-
 <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 
 </body>
 </html>
-
-
-
