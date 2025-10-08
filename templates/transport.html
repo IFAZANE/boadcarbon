@@ -121,16 +121,16 @@
       cursor: pointer;
     }
 
-    /* ✅ Restauration de ton style d’origine pour la description */
+    /* Format EXACTEMENT repris depuis la page Énergie pour la description */
     #enginDescription {
       margin-top: 20px;
+      background: #fff3cc;
       padding: 15px;
-      background-color: #f9f9f9;
-      border-left: 5px solid var(--boad-red);
+      border-left: 6px solid var(--boad-yellow);
+      border-radius: 4px;
+      color: #5c3a00;
       font-style: italic;
-      color: #333;
-      font-size: 14px;
-      min-height: 40px;
+      min-height: 50px;
     }
   </style>
 </head>
@@ -174,8 +174,8 @@
     <tbody id="transportBody"></tbody>
   </table>
 
-  <!-- ✅ Description d’engin restaurée -->
-  <div id="enginDescription">La description de l'engin sélectionné apparaîtra ici.</div>
+  <!-- Description laissée vide par défaut (comme sur la page Énergie) -->
+  <div id="enginDescription"></div>
 
   <div style="text-align: right; margin-top: 20px;">
     <button style="background-color: var(--boad-yellow); padding: 12px 24px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;" onclick="suivant()">Étape suivante (1/3)→</button>
@@ -188,7 +188,7 @@ let transportRows = [];
 const scopes = ["scope_1", "scope_3"];
 
 function afficherDescription(description) {
-  document.getElementById('enginDescription').textContent = description || 'La description de l\'engin sélectionné apparaîtra ici.';
+  document.getElementById('enginDescription').textContent = description || '';
 }
 
 function saveAndRender() { renderTable(); }
