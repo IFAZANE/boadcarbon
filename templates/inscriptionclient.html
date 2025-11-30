@@ -226,7 +226,7 @@ input[type="number"]:focus {
   <h2>Informations sur le projet</h2>
   <form method="POST" novalidate>
     <label for="nom">
-      Nom complet *
+      Nom du porteur de projet *
       <input type="text" id="nom" name="nom" required minlength="2" maxlength="50" pattern="[A-Za-zÀ-ÖØ-öø-ÿ \-']+" value="{{ request.form.nom or '' }}" placeholder="Nom complet du porteur de projet" />
       {% if errors.nom %}
         <span class="error-message">{{ errors.nom }}</span>
@@ -300,3 +300,4 @@ input[type="number"]:focus {
 
 </body>
 </html>
+
