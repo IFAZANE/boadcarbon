@@ -17,7 +17,7 @@ app.secret_key = 'supersecretkey'  # pour gérer les sessions
 
 # Récupère l'URL de la base depuis les variables d'environnement (Render fournit DATABASE_URL)
 DATABASE_URL = os.environ.get("DATABASE_URL", 
-    "postgresql://boad_carbone_v4_user:Jwxd9RANgja35S4tNXIBwesPkm6zwDE9@dpg-d5qbq8juibrs73c2jje0-a/boad_carbone_v4"
+    "postgresql://boad_carbone_v4_user:Jwxd9RANgja35S4tNXIBwesPkm6zwDE9@dpg-d5qbq8juibrs73c2jje0-a.oregon-postgres.render.com:5432/boad_carbone_v4"
 )
 
 app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
@@ -568,6 +568,7 @@ if __name__ == '__main__':
     with app.app_context():
         db.create_all()  # Créera la table 'statistiques' si elle n'existe pas
     app.run(debug=True)
+
 
 
 
